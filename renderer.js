@@ -26,6 +26,10 @@ window.addEventListener('DOMContentLoaded', async () => {
     
     let config = await ipcRenderer.invoke("get-config");
 
+    if (!config.wthit) {
+        document.querySelectorAll('#wthit, .wthit, [value=wthit]').forEach(element => element.remove());
+    }
+
     ButtonFolder.addEventListener('click', async (event) => {
         event.preventDefault();
 
@@ -80,6 +84,9 @@ window.addEventListener('DOMContentLoaded', async () => {
 });
 
 
+function wthit() {
+    ipcRenderer.invoke('wthit');
+}
 
 
 

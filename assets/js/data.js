@@ -12,7 +12,7 @@ function LoadConfig() {
     const configPath = path.join(app.getPath("userData"), 'config.json');
     console.log(configPath);
 
-    let config;
+    let config = {};
 
     let default_config = {
         "startMinimized": false,
@@ -20,7 +20,8 @@ function LoadConfig() {
         "startWithWindows": false,
         "minecraft": "%appdata%\\.minecraft",
         "modpack": undefined,
-        "ressourcepack": undefined
+        "ressourcepack": undefined,
+        "wthit": false,
     };
 
     try {
@@ -34,7 +35,7 @@ function LoadConfig() {
         console.error(error);
     }
 
-    return config ?? default_config;
+    return Object.assign(default_config, config);
 }
 
 module.exports.LoadConfig = LoadConfig;

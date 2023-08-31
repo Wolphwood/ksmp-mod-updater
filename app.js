@@ -164,10 +164,12 @@ async function SearchUpdate(inBackground = false) {
         if (clientKermitPack) {
             let clientKermitPackVersion = clientKermitPack.match(/v(\.*[0-9]+)+/gi)[0].slice(1);
             let apiPacks = await fetch(API + '/ressourcepack/list').then(r => r.json());
-            
-            if (apiPacks[CONFIG.ressourcepack][0].version !== clientKermitPackVersion) {
-                needUpdate = true;
-                if (!inBackground) mainWindow.webContents.send('web-logging', `.\nNew ressourcepack is available!`);
+
+            if (apiPacks[CONFIG.ressourcepack].length > 0) {
+                if (apiPacks[CONFIG.ressourcepack][0].version !== clientKermitPackVersion) {
+                    needUpdate = true;
+                    if (!inBackground) mainWindow.webContents.send('web-logging', `.\nNew ressourcepack is available!`);
+                }
             }
         } else {
             needUpdate = true;
@@ -362,6 +364,14 @@ ipcMain.handle("select-dir", async ( event ) => {
     return result.filePaths.pop();
 });
 
+ipcMain.handle("wthit", async ( event ) => {
+    CONFIG.wthit = !CONFIG.wthit;
+    await SaveConfig(CONFIG);
+    
+    app.relaunch();
+    app.exit();
+});
+
 autoUpdater.on('update-available', () => {
     let notification = new Notification({
         icon: "./assets/img/pack.png",
@@ -389,3 +399,4 @@ autoUpdater.on('update-downloaded', () => {
 process.on('uncaughtException', function (error) {
     console.log(error);
 });
+
