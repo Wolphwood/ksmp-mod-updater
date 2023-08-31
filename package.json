@@ -1,6 +1,6 @@
 {
   "name": "ksmp-client-updater",
-  "version": "1.0.1-beta",
+  "version": "1.0.2-beta",
   "beta": true,
   "description": "KSMP Client Updater",
   "main": "app.js",
