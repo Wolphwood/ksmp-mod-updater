@@ -2,8 +2,10 @@ const { app, BrowserWindow, Tray, Menu, dialog, ipcMain, Notification } = requir
 const path = require('path');
 const fs = require('fs');
 
+const { autoUpdater } = require("electron-updater")
+
 module.exports = {
-    AppDirectory: __dirname
+    AppDirectory: __dirname,
 };
 
 const { LoadConfig, SaveConfig, ReadEnvVariables, downloadFile, ArrayContains } = require('./assets/js/data');
@@ -11,6 +13,9 @@ const { LoadConfig, SaveConfig, ReadEnvVariables, downloadFile, ArrayContains } 
 let mainWindow = null;
 let CONFIG = LoadConfig();
 let IntervalSearchUpdate = null;
+
+
+
 
 const createWindow = () => {
     if (mainWindow) return;
@@ -46,24 +51,27 @@ function createTray() {
 }
 
 function setStarupAtLogin(value) {
+    if (process.env.PORTABLE_EXECUTABLE_DIR) return;
     app.setLoginItemSettings({
         openAtLogin: value,
-        path: app.getPath("exe")
+        path: app.getPath('exe'),
     });
 }
 
-app.setLoginItemSettings({
-    openAtLogin: CONFIG.startWithWindows
-});
+if (process.platform === 'win32') {
+    app.setAppUserModelId("KSMP Client Updater");
+}
 
 app.whenReady().then(() => {
+    autoUpdater.checkForUpdates();
+
     createTray();
     if (!CONFIG.startMinimized) createWindow();
 
     app.on('activate', () => {
         if (BrowserWindow.getAllWindows().length === 0) createWindow();
     });
-
+    
     if (CONFIG.runBackground) {
         _search_update();
         IntervalSearchUpdate = setInterval(_search_update, 60 * 60 * 1000);
@@ -97,8 +105,6 @@ ipcMain.handle("get-config", ( event ) => {
 });
 
 ipcMain.handle("set-config", ( event, key, value ) => {
-    console.log(key, value);
-
     if (key == "startWithWindows") {
         setStarupAtLogin(value);
     }
@@ -289,7 +295,6 @@ async function ApplyUpdate(inBackground = false) {
         fs.writeFileSync(emojitypeConfigFile, JSON.stringify(apiEmojitype, null, 2));
         if (!inBackground) mainWindow.webContents.send('web-logging', `.\nCreating emojitype config...`);
     }
-
 }
 
 async function _search_update(fromTray = false) {
@@ -318,6 +323,13 @@ async function _search_update(fromTray = false) {
     }
 }
 
+ipcMain.handle("DOMContentLoaded", async ( event ) => {
+    mainWindow.webContents.send('web-logging', `KSMP Client Updater v${app.getVersion()}`);
+    mainWindow.webContents.send('web-logging', `Made by Wolphwood and beaucoup beaucoup beaucoup de sueur.`);
+    mainWindow.webContents.send('web-logging', `.`);
+
+});
+
 ipcMain.handle("update", async ( event ) => {
     mainWindow.webContents.send('web-logging', 'Chekcing for update...\n.');
     
@@ -343,4 +355,28 @@ ipcMain.handle("select-dir", async ( event ) => {
         properties: ['openDirectory']
     });
     return result.filePaths.pop();
+});
+
+autoUpdater.on('update-available', () => {
+    let notification = new Notification({
+        icon: "./assets/img/pack.png",
+        title: "New Update Available!",
+        body: "An update is available for the app."
+    });
+
+    notification.on('click', createWindow);
+
+    notification.show();
+});
+
+autoUpdater.on('update-downloaded', () => {
+    let notification = new Notification({
+        icon: "./assets/img/pack.png",
+        title: "New Update Installed!",
+        body: "Restart the app or click on this notification to finish the installation."
+    });
+
+    notification.on('click', () => autoUpdater.quitAndInstall());
+
+    notification.show();
 });
