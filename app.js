@@ -2,7 +2,8 @@ const { app, BrowserWindow, Tray, Menu, dialog, ipcMain, Notification } = requir
 const path = require('path');
 const fs = require('fs');
 
-const { autoUpdater } = require("electron-updater")
+const { autoUpdater } = require("electron-updater");
+const log = require('electron-log');
 
 module.exports = {
     AppDirectory: __dirname,
@@ -328,6 +329,10 @@ ipcMain.handle("DOMContentLoaded", async ( event ) => {
     mainWindow.webContents.send('web-logging', `Made by Wolphwood and beaucoup beaucoup beaucoup de sueur.`);
     mainWindow.webContents.send('web-logging', `.`);
 
+    
+    // let testFilename = path.join(app.getPath("temp"), "test.zip");
+    // if (fs.existsSync(testFilename))fs.unlinkSync(testFilename);
+    // downloadFile("http://vps.wolphwood.ovh:8080/ksmp-api/ressourcepack/get/normal/2.0", testFilename);
 });
 
 ipcMain.handle("update", async ( event ) => {
@@ -379,4 +384,8 @@ autoUpdater.on('update-downloaded', () => {
     notification.on('click', () => autoUpdater.quitAndInstall());
 
     notification.show();
+});
+
+process.on('uncaughtException', function (error) {
+    console.log(error);
 });
