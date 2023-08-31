@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'">
+    <title>KSMP Client Updater</title>
+
+    <link href="./assets/css/style.css" rel="stylesheet" />
+    <script src="./renderer.js" defer></script>
+  </head>
+  <body>
+    <div class="container">
+        <div class="column">
+            <h1>Configuration</h1>
+            <table id="config">
+                <tbody>
+                    <tr>
+                        <td>Game folder</td>
+                        <td class="flex">
+                            <input id="gamefolder" type="text" placeholder="Game folder location ..." c="minecraft">
+                            <button class="folder"><img src="./assets/img/foler.png"></button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Modpack</td>
+                        <td>
+                            <select id="modpack" c="modpack">
+                                <option value="null" selected>--- SELECT MODPACK ---</option>
+                                <option value="fabric">Fabric Simple</option>
+                                <option value="sodium">Fabric Sodium</option>
+                                <option value="optifabric">OptiFabric</option>
+                                <option value="forge">Forge</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Ressourcepack</td>
+                        <td>
+                            <select id="ressourcepack" c="ressourcepack">
+                                <option value="null">--- SELECT RESSOURCEPACK ---</option>
+                                <option value="normal">Narmol</option>
+                                <option value="low">Low</option>
+                                <option value="ultra-low">Potatoe</option>
+                                <!-- <option value="wth">What the hell ?</option> -->
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Start with windows</td>
+                        <td>
+                            <div>
+                                <label class="toggler-wrapper">
+                                    <input type="checkbox" id="start-win" c="startWithWindows">
+                                    <div class="toggler-slider">
+                                        <div class="toggler-knob"></div>
+                                    </div>
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Start minimized</td>
+                        <td>
+                            <div>
+                                <label class="toggler-wrapper">
+                                    <input type="checkbox" id="start-minimized" c="startMinimized">
+                                    <div class="toggler-slider">
+                                        <div class="toggler-knob"></div>
+                                    </div>
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Allow to run in background</td>
+                        <td>
+                            <div>
+                                <label class="toggler-wrapper">
+                                    <input type="checkbox" id="allow-run-background" c="runBackground">
+                                    <div class="toggler-slider">
+                                        <div class="toggler-knob"></div>
+                                    </div>
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <button>MAJ</button>
+                        </td>
+                        <td>
+                            <button>Save</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="column logging">
+            <p>KSMP Client Updater - Made by Wolphwood and beaucoup beaucoup beaucoup de sueur.</p>
+            <p></p>
+        </div>
+    </div>
+    
+  </body>
+</html>

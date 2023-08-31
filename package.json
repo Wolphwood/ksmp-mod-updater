@@ -1,0 +1,31 @@
+{
+  "name": "ksmp-updater",
+  "version": "0.0.1-beta",
+  "beta": true,
+  "description": "KSMP Client Updater",
+  "main": "app.js",
+  "author": "Wolphwood",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "build": "npx electron-builder",
+    "build-portable": "npx electron-builder --win portable"
+  },
+  "devDependencies": {
+    "electron": "^26.1.0",
+    "electron-builder": "^24.6.3"
+  },
+  "dependencies": {
+    "fetch": "^1.1.0"
+  },
+  "build": {
+    "appId": "ksmp.client.updater",
+    "productName": "KSMP Client Updater",
+    "extraFiles": [
+      "./assets/**"
+    ],
+    "win": {
+      "icon": "./assets/img/pack.png"
+    }
+  }
+}
