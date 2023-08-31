@@ -2,15 +2,22 @@ const { app, BrowserWindow, Tray, Menu, dialog, ipcMain, Notification } = requir
 const path = require('path');
 const fs = require('fs');
 
+const { autoUpdater } = require("electron-updater")
+
 module.exports = {
-    AppDirectory: __dirname
+    AppDirectory: __dirname,
 };
+
+const { autoUpdater } = require("electron-updater");
 
 const { LoadConfig, SaveConfig, ReadEnvVariables, downloadFile, ArrayContains } = require('./assets/js/data');
 
 let mainWindow = null;
 let CONFIG = LoadConfig();
 let IntervalSearchUpdate = null;
+
+
+
 
 const createWindow = () => {
     if (mainWindow) return;
@@ -63,6 +70,12 @@ app.whenReady().then(() => {
     app.on('activate', () => {
         if (BrowserWindow.getAllWindows().length === 0) createWindow();
     });
+
+    console.log(process.env.PORTABLE_EXECUTABLE_DIR)
+    console.log(__dirname)
+    console.log(app.getPath("appData"));
+    console.log(app.getPath("userData"));
+    console.log(app.getPath("exe"));
 
     if (CONFIG.runBackground) {
         _search_update();

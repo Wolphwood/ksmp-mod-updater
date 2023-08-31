@@ -5,6 +5,7 @@ const {mkdir, writeFile} = require("fs/promises");
 const { Readable } = require('stream');
 const { finished } = require('stream/promises');
 
+const { app } = require('electron');
 
 const { AppDirectory } = require('../../app');
 

@@ -1,5 +1,5 @@
 {
-  "name": "ksmp-updater",
+  "name": "ksmp-client-updater",
   "version": "0.0.1-beta",
   "beta": true,
   "description": "KSMP Client Updater",
@@ -16,6 +16,7 @@
     "electron-builder": "^24.6.3"
   },
   "dependencies": {
+    "electron-updater": "^6.1.1",
     "fetch": "^1.1.0"
   },
   "build": {
