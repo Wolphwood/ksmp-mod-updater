@@ -5,7 +5,8 @@ const {mkdir, writeFile} = require("fs/promises");
 const { Readable } = require('stream');
 const { finished } = require('stream/promises');
 
-const { app } = require('electron');
+const { app, BrowserWindow  } = require('electron');
+const log = require('electron-log');
 
 function LoadConfig() {
     const configPath = path.join(app.getPath("userData"), 'config.json');
@@ -27,7 +28,9 @@ function LoadConfig() {
             const configFile = fs.readFileSync(configPath, 'utf-8');
             config = JSON.parse(configFile);
         }
+        log.info(`Loaded config !`);
     } catch (error) {
+        log.error(error);
         console.error(error);
     }
 
@@ -38,7 +41,8 @@ module.exports.LoadConfig = LoadConfig;
 
 function SaveConfig(config) {
     const configPath = path.join(app.getPath("userData"), 'config.json');
-
+    
+    log.info(`Saved config !`);
     fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
 }
 
@@ -57,11 +61,15 @@ module.exports.ReadEnvVariables = ReadEnvVariables;
 
 
 const downloadFile = (async (url, folder=".") => {
-    const res = await fetch(url);
-    // if (!fs.existsSync("downloads")) await mkdir("downloads"); //Optional if you already have downloads directory
-    const destination = path.resolve(folder);
-    const fileStream = fs.createWriteStream(destination, { flags: 'wx' });
-    await finished(Readable.fromWeb(res.body).pipe(fileStream));
+    try {
+        const res = await fetch(url);
+        const destination = path.resolve(folder);
+        const fileStream = fs.createWriteStream(destination, { flags: 'wx' });
+        await finished(Readable.fromWeb(res.body).pipe(fileStream));
+    } catch (e) {
+        log.error(e);
+        BrowserWindow.getAllWindows().forEach(win => win.webContents.send('web-logging-error', e.message));
+    }
 });
 
 module.exports.downloadFile = downloadFile;
