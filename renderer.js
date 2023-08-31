@@ -22,6 +22,8 @@ const [ButtonFolder, ButtonMAJ, ButtonSave] = document.querySelectorAll("button"
 
 
 window.addEventListener('DOMContentLoaded', async () => {
+    await ipcRenderer.invoke("DOMContentLoaded");
+    
     let config = await ipcRenderer.invoke("get-config");
 
     ButtonFolder.addEventListener('click', async (event) => {

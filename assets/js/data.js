@@ -7,10 +7,9 @@ const { finished } = require('stream/promises');
 
 const { app } = require('electron');
 
-const { AppDirectory } = require('../../app');
-
 function LoadConfig() {
-    const configPath = path.join(AppDirectory, 'config.json');
+    const configPath = path.join(app.getPath("userData"), 'config.json');
+    console.log(configPath);
 
     let config;
 
@@ -38,7 +37,7 @@ function LoadConfig() {
 module.exports.LoadConfig = LoadConfig;
 
 function SaveConfig(config) {
-    const configPath = path.join(AppDirectory, 'config.json');
+    const configPath = path.join(app.getPath("userData"), 'config.json');
 
     fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
 }
