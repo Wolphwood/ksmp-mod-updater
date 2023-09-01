@@ -9,14 +9,11 @@ module.exports = {
     AppDirectory: __dirname,
 };
 
-const { LoadConfig, SaveConfig, ReadEnvVariables, downloadFile, ArrayContains } = require('./assets/js/data');
+const { LoadConfig, SaveConfig, ReadEnvVariables, downloadFile, ArrayContains, Wait } = require('./assets/js/data');
 
 let mainWindow = null;
 let CONFIG = LoadConfig();
 let IntervalSearchUpdate = null;
-
-
-
 
 const createWindow = () => {
     if (mainWindow) return;
@@ -63,18 +60,24 @@ if (process.platform === 'win32') {
     app.setAppUserModelId("KSMP Client Updater");
 }
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
     autoUpdater.checkForUpdates();
 
     createTray();
     if (!CONFIG.startMinimized) createWindow();
+
+    let updateFound = await _search_update();
+    if (CONFIG.startMinimized && !CONFIG.runBackground) {
+        await Wait(updateFound ? 5 * 60_000 : 60_000);
+        app.quit();
+    }
+
 
     app.on('activate', () => {
         if (BrowserWindow.getAllWindows().length === 0) createWindow();
     });
     
     if (CONFIG.runBackground) {
-        _search_update();
         IntervalSearchUpdate = setInterval(_search_update, 60 * 60 * 1000);
     }
 
@@ -324,6 +327,8 @@ async function _search_update(fromTray = false) {
     
         notification.show();
     }
+
+    return needUpdate;
 }
 
 ipcMain.handle("DOMContentLoaded", async ( event ) => {

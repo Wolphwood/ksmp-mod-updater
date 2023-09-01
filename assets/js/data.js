@@ -93,3 +93,12 @@ function ArrayContains(a,b) {
 }
 
 module.exports.ArrayContains = ArrayContains;
+
+
+function Wait(ms) {
+    return new Promise((rs,re) => {
+        setTimeout(rs, ms);
+    });
+}
+
+module.exports.Wait = Wait;
