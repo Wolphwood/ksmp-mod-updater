@@ -121,12 +121,6 @@ ipcMain.handle("save-config", ( event, config ) => {
     return SaveConfig(config ?? CONFIG);
 });
 
-
-const API = 'https://vps.wolphwood.ovh/ksmp-api';
-
-const regBasename = /(-for-)*((mc)*([\.+]*[0-9])+)[\-\+]*(beta|fabric|forge)*(([ab]\.)*build)*(\.[a-z0-9]*)*/gmi;
-const regRemLoader = /[_\-\.\s]+(beta|fabric|forge)*[_\-\.\s]*$/gmi
-
 async function SearchUpdate(inBackground = false) {
     let needUpdate = false;
 
