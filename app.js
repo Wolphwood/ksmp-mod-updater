@@ -9,14 +9,11 @@ module.exports = {
     AppDirectory: __dirname,
 };
 
-const { LoadConfig, SaveConfig, ReadEnvVariables, downloadFile, ArrayContains } = require('./assets/js/data');
+const { LoadConfig, SaveConfig, ReadEnvVariables, downloadFile, ArrayContains, Wait, UpdateMods, UpdateRessourcePack, UpdateOthers } = require('./assets/js/data');
 
 let mainWindow = null;
 let CONFIG = LoadConfig();
 let IntervalSearchUpdate = null;
-
-
-
 
 const createWindow = () => {
     if (mainWindow) return;
@@ -32,7 +29,7 @@ const createWindow = () => {
         },
         resizable: false,
         autoHideMenuBar: true,
-        icon:'./assets/img/pack.png',
+        icon: path.join(app.getAppPath(), 'assets/img/pack.png'),
     });
 
     mainWindow.loadFile('index.html');
@@ -40,7 +37,7 @@ const createWindow = () => {
 }
 
 function createTray() {
-    const tray = new Tray( __dirname + '/assets/img/pack.png');
+    const tray = new Tray( path.join(app.getAppPath(), 'assets/img/pack.png') );
     const contextMenu = Menu.buildFromTemplate([
         { label: 'Ouvrir', click: () => createWindow() },
         { label: 'Chercher une mise à jour', click: () => _search_update(true) },
@@ -63,18 +60,24 @@ if (process.platform === 'win32') {
     app.setAppUserModelId("KSMP Client Updater");
 }
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
     autoUpdater.checkForUpdates();
 
     createTray();
     if (!CONFIG.startMinimized) createWindow();
+
+    let updateFound = await _search_update();
+    if (CONFIG.startMinimized && !CONFIG.runBackground) {
+        await Wait(updateFound ? 5 * 60_000 : 60_000);
+        app.quit();
+    }
+
 
     app.on('activate', () => {
         if (BrowserWindow.getAllWindows().length === 0) createWindow();
     });
     
     if (CONFIG.runBackground) {
-        _search_update();
         IntervalSearchUpdate = setInterval(_search_update, 60 * 60 * 1000);
     }
 
@@ -89,7 +92,7 @@ app.whenReady().then(() => {
         }
 
         let notification = new Notification({
-            icon: "./assets/img/pack.png",
+            icon: path.join(app.getAppPath(), 'assets/img/pack.png'),
             title: "Running in background",
             body: "the program continues to run in the background."
         });
@@ -119,183 +122,89 @@ ipcMain.handle("save-config", ( event, config ) => {
 });
 
 
-const API = 'http://vps.wolphwood.ovh:8080/ksmp-api';
+const API = 'https://vps.wolphwood.ovh/ksmp-api';
 
-const regBasename = /(-for-)*((mc)*([\.+]*[0-9])+)[\-\+]*(beta|fabric|forge)*(b\.build)*(\.[a-z0-9]*)*/gmi;
+const regBasename = /(-for-)*((mc)*([\.+]*[0-9])+)[\-\+]*(beta|fabric|forge)*(([ab]\.)*build)*(\.[a-z0-9]*)*/gmi;
 const regRemLoader = /[_\-\.\s]+(beta|fabric|forge)*[_\-\.\s]*$/gmi
 
 async function SearchUpdate(inBackground = false) {
     let needUpdate = false;
 
+    let modsNeedUpdate, ressourcepackNeedUpdate;
+
     // Mods
     if (CONFIG.modpack) {
-        let clientMods = fs.readdirSync(ReadEnvVariables(path.join(CONFIG.minecraft, 'mods'))).filter(mod => mod.endsWith('.jar'));
-        let apiMods = await fetch(API + '/mods/' + CONFIG.modpack).then(r => r.json());
-
-        Object.keys(apiMods).forEach(key => {
-            let mod = apiMods[key];
-            if (!mod) return;
-
-            let file = mod.files.find(file => file.primary);
-            if (!file) file = mod.files[0];
-
-            let basename = file.filename.slice(0,-4).replace(regBasename, '').replace(regRemLoader, '');
-
-            let foundMod = clientMods.find(filename => filename.includes(basename));
-            if (foundMod) {
-                if (foundMod !== file.filename) {
-                    needUpdate = true;
-                    if (!inBackground) mainWindow.webContents.send('web-logging', `Update found for the mod '${basename}'.`);
-                } else {
-                    if (!inBackground) mainWindow.webContents.send('web-logging', `Mod '${basename}' is up to date.`);
-                }
-            } else {
-                needUpdate = true;
-                if (!inBackground) mainWindow.webContents.send('web-logging', `Mod '${basename}' not found, need to be downloaded.`);
-            }
-        });
+        modsNeedUpdate = await UpdateMods(inBackground, true);
     }
-
+    
     // Ressourcepack
     if (CONFIG.ressourcepack) {
-        let clientPacks = fs.readdirSync(ReadEnvVariables(path.join(CONFIG.minecraft, 'resourcepacks'))).filter(mod => mod.endsWith('.zip'));
-
-        let clientKermitPack = clientPacks.find(pack => RegExp('^Kermit SMP v(\\.*[0-9])+', 'gi').test(pack) && !['patch','special'].some(k => pack.toLowerCase().includes(k)));
-        if (clientKermitPack) {
-            let clientKermitPackVersion = clientKermitPack.match(/v(\.*[0-9]+)+/gi)[0].slice(1);
-            let apiPacks = await fetch(API + '/ressourcepack/list').then(r => r.json());
-            
-            if (apiPacks[CONFIG.ressourcepack][0].version !== clientKermitPackVersion) {
-                needUpdate = true;
-                if (!inBackground) mainWindow.webContents.send('web-logging', `.\nNew ressourcepack is available!`);
-            }
-        } else {
-            needUpdate = true;
-        }
+        ressourcepackNeedUpdate = await UpdateRessourcePack(inBackground, true);
     }
 
     // Others - Configs
-    let emojitypeConfigFile = ReadEnvVariables(path.join(CONFIG.minecraft, '/config/emojitype.json'));
-    let apiEmojitype = await fetch(API + '/others/config/emojitype').then(r => r.json());
+    // let emojitypeConfigFile = ReadEnvVariables(path.join(CONFIG.minecraft, '/config/emojitype.json'));
+    // let apiEmojitype = await fetch(API + '/others/config/emojitype').then(r => r.json());
     
-    if (fs.existsSync(emojitypeConfigFile)) {
-        let clientEmojitype = JSON.parse(fs.readFileSync(emojitypeConfigFile, 'utf8'));
+    // if (fs.existsSync(emojitypeConfigFile)) {
+    //     let clientEmojitype = JSON.parse(fs.readFileSync(emojitypeConfigFile, 'utf8'));
 
-        let updatedEmojis = clientEmojitype.map(emoji => {
-            let [name, value] = emoji.split(';');
+    //     let updatedEmojis = clientEmojitype.map(emoji => {
+    //         let [name, value] = emoji.split(';');
 
-            let foundEmoji = apiEmojitype.find(nEmoji => {
-                let [nName, nValue] = nEmoji.split(';');
-                return nName == name;
-            });
+    //         let foundEmoji = apiEmojitype.find(nEmoji => {
+    //             let [nName, nValue] = nEmoji.split(';');
+    //             return nName == name;
+    //         });
 
-            if (foundEmoji) {
-                return foundEmoji;
-            } else {
-                return emoji;
-            }
-        });
+    //         if (foundEmoji) {
+    //             return foundEmoji;
+    //         } else {
+    //             return emoji;
+    //         }
+    //     });
         
-        emojisNeedUpdate = ArrayContains(clientEmojitype, updatedEmojis);
+    //     emojisNeedUpdate = ArrayContains(clientEmojitype, updatedEmojis);
 
-        if (emojisNeedUpdate) {
-            if (!inBackground) mainWindow.webContents.send('web-logging', `.\nNew emojis are available!`);
-            needUpdate = true;
-        }
-    } else {
-        if (!inBackground) mainWindow.webContents.send('web-logging', `.\nNo emojitype config detected.`);
-        needUpdate = true;
-    }
+    //     if (emojisNeedUpdate) {
+    //         if (!inBackground) mainWindow.webContents.send('web-logging', `.\nNew emojis are available!`);
+    //         needUpdate = true;
+    //     }
+    // } else {
+    //     if (!inBackground) mainWindow.webContents.send('web-logging', `.\nNo emojitype config detected.`);
+    //     needUpdate = true;
+    // }
 
-    return needUpdate;
+    // Others
+    othersNeedUpdate = await UpdateOthers(inBackground, true);
+    
+    log.info("modsNeedUpdate          :", modsNeedUpdate)
+    log.info("ressourcepackNeedUpdate :", ressourcepackNeedUpdate)
+    log.info("othersNeedUpdate        :", othersNeedUpdate)
+    return modsNeedUpdate || ressourcepackNeedUpdate || othersNeedUpdate;
 }
 
 async function ApplyUpdate(inBackground = false) {
     // Mods
     if (CONFIG.modpack) {
-        let modsLocation = ReadEnvVariables(path.join(CONFIG.minecraft, 'mods'));
-
-        let clientMods = fs.readdirSync(modsLocation).filter(mod => mod.endsWith('.jar'));
-        let apiMods = await fetch(API + '/mods/' + CONFIG.modpack).then(r => r.json());
-
-        Object.keys(apiMods).forEach(key => {
-            let mod = apiMods[key];
-            if (!mod) return;
-
-            let file = mod.files.find(file => file.primary);
-            if (!file) file = mod.files[0];
-
-            let basename = file.filename.slice(0,-4).replace(regBasename, '').replace(regRemLoader, '');
-
-            let foundMod = clientMods.find(filename => filename.includes(basename));
-            if (foundMod) {
-                if (foundMod !== file.filename) {
-                    fs.unlinkSync(path.join(modsLocation, foundMod));
-                    
-                    downloadFile(file.url, path.join(modsLocation, file.filename));
-                    
-                    if (!inBackground) mainWindow.webContents.send('web-logging', `Updating '${basename}' ...`);
-                }
-            } else {
-                downloadFile(file.url, path.join(modsLocation, file.filename));
-                if (!inBackground) mainWindow.webContents.send('web-logging', `Downloading '${basename}' ...`);
-            }
-        });
+        let updated = await UpdateMods(inBackground);
+        log.info("Mods successfuly updated :", updated);
+        if (!inBackground) mainWindow.webContents.send('web-logging', ``);
     }
 
     // Ressourcepack
     if (CONFIG.ressourcepack) {
-        let ressourcepackLocation = ReadEnvVariables(path.join(CONFIG.minecraft, 'resourcepacks'));
+        let updated = await UpdateRessourcePack(inBackground);
+        log.info("Ressourcepack successfuly updated :", updated);
+        if (!inBackground) mainWindow.webContents.send('web-logging', ``);
+    }
 
-        let clientPacks = fs.readdirSync(ressourcepackLocation).filter(mod => mod.endsWith('.zip'));
-        let clientKermitPack = clientPacks.find(pack => RegExp('^Kermit SMP v(\\.*[0-9])+', 'gi').test(pack) && !['patch','special'].some(k => pack.toLowerCase().includes(k)));
-        if (clientKermitPack) {
-            let clientKermitPackVersion = clientKermitPack.match(/v(\.*[0-9]+)+/gi)[0].slice(1);
-            let apiPacks = await fetch(API + '/ressourcepack/list').then(r => r.json());
-            
-
-            if (apiPacks[CONFIG.ressourcepack][0].version !== clientKermitPackVersion) {
-                fs.unlinkSync(path.join(ressourcepackLocation, clientKermitPack));
-                downloadFile(API + `/ressourcepack/get/${CONFIG.ressourcepack}/last`, path.join(ressourcepackLocation, apiPacks[CONFIG.ressourcepack][0].filename));
-                if (!inBackground) mainWindow.webContents.send('web-logging', `.\nUpdating '${apiPacks[CONFIG.ressourcepack][0].filename}' ...`);
-            }
-        } else {
-            let apiPacks = await fetch(API + '/ressourcepack/list').then(r => r.json());
-            downloadFile(API + `/ressourcepack/get/${CONFIG.ressourcepack}/last`, path.join(ressourcepackLocation, apiPacks[CONFIG.ressourcepack][0].filename));
-            if (!inBackground) mainWindow.webContents.send('web-logging', `.\nDownloading '${apiPacks[CONFIG.ressourcepack][0].filename}' ...`);
-        }
+    // Others
+    if (await UpdateOthers(inBackground, true)) {
+        await UpdateOthers(inBackground);
+        if (!inBackground) mainWindow.webContents.send('web-logging', ``);
     }
     
-    // Others - Configs
-    let emojitypeConfigFile = ReadEnvVariables(path.join(CONFIG.minecraft, '/config/emojitype.json'));
-    let apiEmojitype = await fetch(API + '/others/config/emojitype').then(r => r.json());
-
-    if (fs.existsSync(emojitypeConfigFile)) {
-        let clientEmojitype = JSON.parse(fs.readFileSync(emojitypeConfigFile, 'utf8'));
-
-        let updatedEmojis = clientEmojitype.map(emoji => {
-            let [name, value] = emoji.split(';');
-
-            let foundEmoji = apiEmojitype.find(nEmoji => {
-                let [nName, nValue] = nEmoji.split(';');
-                return nName == name;
-            });
-
-            if (foundEmoji) {
-                return foundEmoji;
-            } else {
-                return emoji;
-            }
-        });
-        
-        if (ArrayContains(clientEmojitype, updatedEmojis)) {
-            fs.writeFileSync(emojitypeConfigFile, JSON.stringify(updatedEmojis, null, 2));
-            if (!inBackground) mainWindow.webContents.send('web-logging', `.\nUpdating emojitype config...`);
-        }
-    } else {
-        fs.writeFileSync(emojitypeConfigFile, JSON.stringify(apiEmojitype, null, 2));
-        if (!inBackground) mainWindow.webContents.send('web-logging', `.\nCreating emojitype config...`);
-    }
 }
 
 async function _search_update(fromTray = false) {
@@ -303,7 +212,7 @@ async function _search_update(fromTray = false) {
 
     if (needUpdate) {
         let notification = new Notification({
-            icon: "./assets/img/pack.png",
+            icon: path.join(app.getAppPath(), 'assets/img/pack.png'),
             title: "Update available",
             body: "Update for mods, ressource pack or other config is available!"
         });
@@ -313,7 +222,7 @@ async function _search_update(fromTray = false) {
         notification.show();
     } else if (fromTray) {
         let notification = new Notification({
-            icon: "./assets/img/pack.png",
+            icon: path.join(app.getAppPath(), 'assets/img/pack.png'),
             title: "No Update available",
             body: "You are already up to date :)"
         });
@@ -322,12 +231,14 @@ async function _search_update(fromTray = false) {
     
         notification.show();
     }
+
+    return needUpdate;
 }
 
 ipcMain.handle("DOMContentLoaded", async ( event ) => {
     mainWindow.webContents.send('web-logging', `KSMP Client Updater v${app.getVersion()}`);
     mainWindow.webContents.send('web-logging', `Made by Wolphwood and beaucoup beaucoup beaucoup de sueur.`);
-    mainWindow.webContents.send('web-logging', `.`);
+    mainWindow.webContents.send('web-logging', '');
 
     
     // let testFilename = path.join(app.getPath("temp"), "test.zip");
@@ -336,7 +247,7 @@ ipcMain.handle("DOMContentLoaded", async ( event ) => {
 });
 
 ipcMain.handle("update", async ( event ) => {
-    mainWindow.webContents.send('web-logging', 'Chekcing for update...\n.');
+    mainWindow.webContents.send('web-logging', 'Chekcing for update...\n');
     
     let needUpdate = await SearchUpdate();
     
@@ -350,8 +261,8 @@ ipcMain.handle("update", async ( event ) => {
     if (!needUpdate) return;
 
     
-    mainWindow.webContents.send('web-logging', '.\n.');
-    mainWindow.webContents.send('web-logging', 'Updating your datas...\n.');
+    mainWindow.webContents.send('web-logging', '.\n');
+    mainWindow.webContents.send('web-logging', 'Updating your datas...\n');
     ApplyUpdate();
 });
 
@@ -362,9 +273,17 @@ ipcMain.handle("select-dir", async ( event ) => {
     return result.filePaths.pop();
 });
 
+ipcMain.handle("wthit", async ( event ) => {
+    CONFIG.wthit = !CONFIG.wthit;
+    await SaveConfig(CONFIG);
+    
+    app.relaunch();
+    app.exit();
+});
+
 autoUpdater.on('update-available', () => {
     let notification = new Notification({
-        icon: "./assets/img/pack.png",
+        icon: path.join(app.getAppPath(), 'assets/img/pack.png'),
         title: "New Update Available!",
         body: "An update is available for the app."
     });
@@ -376,7 +295,7 @@ autoUpdater.on('update-available', () => {
 
 autoUpdater.on('update-downloaded', () => {
     let notification = new Notification({
-        icon: "./assets/img/pack.png",
+        icon: path.join(app.getAppPath(), 'assets/img/pack.png'),
         title: "New Update Installed!",
         body: "Restart the app or click on this notification to finish the installation."
     });
@@ -387,5 +306,7 @@ autoUpdater.on('update-downloaded', () => {
 });
 
 process.on('uncaughtException', function (error) {
-    console.log(error);
+    console.error(error);
+    log.error(error);
+    BrowserWindow.getAllWindows().forEach(win => win.webContents.send('web-logging-error', error.message));
 });

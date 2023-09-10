@@ -26,6 +26,10 @@ window.addEventListener('DOMContentLoaded', async () => {
     
     let config = await ipcRenderer.invoke("get-config");
 
+    if (!config.wthit) {
+        document.querySelectorAll('#wthit, .wthit, [value=wthit]').forEach(element => element.remove());
+    }
+
     ButtonFolder.addEventListener('click', async (event) => {
         event.preventDefault();
 
@@ -80,38 +84,99 @@ window.addEventListener('DOMContentLoaded', async () => {
 });
 
 
+function wthit() {
+    ipcRenderer.invoke('wthit');
+}
 
 
 
 const LogDiv = document.querySelector('div.logging');
 
-ipcRenderer.on('web-logging', function (event, message) {    
+ipcRenderer.on('web-logging', function (event, message="") {
+    let autoScroll = (LogDiv.scrollHeight - LogDiv.clientHeight) == LogDiv.scrollTop; 
+
+    let uuid = self.crypto.randomUUID();
+    
     let div = document.createElement('div');
+    div.setAttribute("uuid", uuid);
 
+    let fragment = document.createDocumentFragment();
     message.split('\n').forEach(line => {
-        let p = document.createElement('p');
-        p.textContent = line;
-
-        div.appendChild(p);
+        if (line.length == 0) {
+            let br = document.createElement('br');
+            fragment.appendChild(br);
+        } else {
+            let p = document.createElement('p');
+            p.textContent = line;
+            fragment.appendChild(p);
+        }
     });
+    div.appendChild(fragment);
 
     LogDiv.appendChild(div);
+
+    if (autoScroll) LogDiv.scrollTop = LogDiv.scrollHeight - LogDiv.clientHeight;
+
+    ipcRenderer.send('web-logging-response', uuid, isError=false);
 });
 
-ipcRenderer.on('web-logging-error', function (event, message) {    
+ipcRenderer.on('web-logging-error', function (event, message="") {  
+    let autoScroll = (LogDiv.scrollHeight - LogDiv.clientHeight) == LogDiv.scrollTop; 
+
+    let uuid = self.crypto.randomUUID();
+
     let div = document.createElement('div');
+    div.setAttribute("uuid", uuid);
+
     div.classList.add("error");
 
+    let fragment = document.createDocumentFragment();
     message.split('\n').forEach(line => {
-        let p = document.createElement('p');
-        p.textContent = line;
-
-        div.appendChild(p);
+        if (line.length == 0) {
+            let br = document.createElement('br');
+            fragment.appendChild(br);
+        } else {
+            let p = document.createElement('p');
+            p.textContent = line;
+            fragment.appendChild(p);
+        }
     });
+    div.appendChild(fragment);
 
     LogDiv.appendChild(div);
+
+    if (autoScroll) LogDiv.scrollTop = LogDiv.scrollHeight - LogDiv.clientHeight;
+
+    ipcRenderer.send('web-logging-response', uuid, isError=true);
 });
 
+ipcRenderer.on('web-logging-edit', function (event, uuid, message="", error=null) {
+    let autoScroll = (LogDiv.scrollHeight - LogDiv.clientHeight) == LogDiv.scrollTop; 
+
+    let div = document.querySelector(`div[uuid="${uuid}"]`);
+
+    if (error == true) div.classList.add("error");
+    if (error == false) div.classList.remove("error");
+
+    for (let child of div.children) {
+        div.removeChild(child);
+    }
+
+    let fragment = document.createDocumentFragment();
+    message.split('\n').forEach(line => {
+        if (line.length == 0) {
+            let br = document.createElement('br');
+            fragment.appendChild(br);
+        } else {
+            let p = document.createElement('p');
+            p.textContent = line;
+            fragment.appendChild(p);
+        }
+    });
+    div.appendChild(fragment);
+    
+    if (autoScroll) LogDiv.scrollTop = LogDiv.scrollHeight - LogDiv.clientHeight;
+});
 
 
 
