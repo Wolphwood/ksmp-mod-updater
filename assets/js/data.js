@@ -8,7 +8,7 @@ const log = require('electron-log');
 
 const API = 'https://vps.wolphwood.ovh/ksmp-api';
 
-const regBasename = /(-for-)*((mc)*([\.+]*[0-9])+)[\-\+]*(beta|fabric|forge)*(([ab]\.)*build)*(\.[a-z0-9]*)*/gmi;
+const regBasename = /(-for-)*((mc)*([\.+]*[0-9])+)[\-\+]*(beta|fabric|forge|kotlin)*(([ab]\.)*build)*(\.[a-z0-9]*)*/gmi;
 const regRemLoader = /[_\-\.\s]+(beta|fabric|forge)*[_\-\.\s]*$/gmi
 
 function LoadConfig() {
@@ -251,7 +251,7 @@ async function UpdateMods(inBackground = false, searchOnly = false) {
         if (!file) file = mod.files[0];
         
         let basename = file.filename.slice(0,-4).replace(regBasename, '').replace(regRemLoader, '');
-        
+
         let foundMod = clientMods.find(filename => {
             let exceptionSodium = basename === "sodium" ? !filename.includes("reese") && !filename.includes("extra") : true; 
             return filename.includes(basename) && exceptionSodium;
@@ -313,7 +313,7 @@ async function UpdateRessourcePack(inBackground = false, searchOnly = false) {
     if (clientKermitPack) {
         let clientKermitPackVersion = clientKermitPack.match(/v(\.*[0-9]+)+/gi)[0].slice(1);
 
-        if ((apiPacks[config.ressourcepack][0].version !== clientKermitPackVersion) || (apiPacks[config.ressourcepack][0].filename !== clientKermitPackVersion)) {
+        if (apiPacks[config.ressourcepack][0].version !== clientKermitPackVersion) {
             if (!searchOnly) {
                 fs.unlinkSync(path.join(ressourcepackLocation, clientKermitPack));
                 if (inBackground) {
