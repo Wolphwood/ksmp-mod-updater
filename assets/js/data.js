@@ -196,12 +196,15 @@ async function downloadedFileWithProgress(url, folder, filename) {
         });
     }
     function downloadProgess(uuid, value) {
+        log.info(`Downloading '${filename}' ${Math.round(value*1000)/10}%`);
         BrowserWindow.getAllWindows().forEach(win => win.send('web-logging-edit', uuid, `Downloading '${filename}' ${Math.round(value*1000)/10}%`, false));
     }
     function downloadFinish(uuid) {
+        log.info(`The '${filename}' is downloaded!`);
         BrowserWindow.getAllWindows().forEach(win => win.send('web-logging-edit', uuid, `The '${filename}' is downloaded!`, false));
     }
     function downloadError(uuid, error) {
+        log.error(`Ouch, an error has occured while downloading the file '${filename}',\nsee error : ${error.message}`, error);
         BrowserWindow.getAllWindows().forEach(win => win.send('web-logging-edit', uuid, `Ouch, an error has occured while downloading the file '${filename}',\nsee error : ${error.message}`, true));
     }
 
@@ -260,6 +263,8 @@ async function UpdateMods(inBackground = false, searchOnly = false) {
         if (foundMod) {
             if (foundMod !== file.filename) {
                 if (!searchOnly) {
+                    log.info(`Updating mod '${foundMod}' to '${file.filename}'`);
+
                     fs.unlinkSync(path.join(modsLocation, foundMod));
                     if (inBackground) {
                         await downloadFile(file.url, path.join(modsLocation, file.filename));
@@ -307,14 +312,14 @@ async function UpdateRessourcePack(inBackground = false, searchOnly = false) {
 
     let clientPacks = fs.readdirSync(ressourcepackLocation).filter(mod => mod.endsWith('.zip'));
     let clientKermitPack = clientPacks.find(pack => Regs[config.ressourcepack].test(pack) && !['patch','special'].some(k => pack.toLowerCase().includes(k)));
-    
-    console.log("DEBUG :", clientKermitPack)
 
     if (clientKermitPack) {
         let clientKermitPackVersion = clientKermitPack.match(/v(\.*[0-9]+)+/gi)[0].slice(1);
 
         if (apiPacks[config.ressourcepack][0].version !== clientKermitPackVersion) {
             if (!searchOnly) {
+                log.info(`Updating ressource pack '${clientKermitPackVersion}' to '${apiPacks[config.ressourcepack][0].version}'`);
+                
                 fs.unlinkSync(path.join(ressourcepackLocation, clientKermitPack));
                 if (inBackground) {
                     await downloadFile(API + `/ressourcepack/get/${config.ressourcepack}/latest`, ressourcepackLocation, apiPacks[config.ressourcepack][0].filename);
