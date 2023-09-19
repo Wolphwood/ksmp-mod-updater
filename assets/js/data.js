@@ -296,7 +296,7 @@ async function UpdateRessourcePack(inBackground = false, searchOnly = false) {
         
     let apiPacks = await fetch(API + '/ressourcepack/list').then(r => r.json());
     if (apiPacks[config.ressourcepack].length == 0) {
-        if (!inBackground) return mainWindow.webContents.send('web-logging-error', `.\nNo pack found for the category '${config.ressourcepack}'.`);
+        if (!inBackground) return BrowserWindow.getAllWindows().forEach(win => win.webContents.send('web-logging-error', `No pack found for the category '${config.ressourcepack}'.`));
     }
 
     let Regs = {
