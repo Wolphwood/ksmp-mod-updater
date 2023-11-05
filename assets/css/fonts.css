@@ -1,0 +1,55 @@
+@font-face {
+  font-family: "Tourney Black";
+  src: url("../fonts/Tourney-Black.ttf");
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Tourney Black";
+  src: url("../fonts/Tourney-BlackItalic.ttf");
+  font-style: italic;
+}
+
+@font-face {
+  font-family: "Tourney Condensed Black";
+  src: url("../fonts/Tourney_Condensed-Black.ttf");
+}
+
+@font-face {
+  font-family: "Tourney Condensed Black";
+  src: url("../fonts/Tourney_Condensed-BlackItalic.ttf");
+  font-style: italic;
+}
+
+@font-face {
+  font-family: "Tourney Expanded Black";
+  src: url("../fonts/Tourney_Expanded-Black.ttf");
+}
+
+@font-face {
+  font-family: "Tourney Expanded Black";
+  src: url("../fonts/Tourney_Expanded-BlackItalic.ttf");
+  font-style: italic;
+}
+
+@font-face {
+  font-family: "Tourney Semi Condensed Black";
+  src: url("../fonts/Tourney_SemiCondensed-Black.ttf");
+}
+
+@font-face {
+  font-family: "Tourney Semi Condensed Black";
+  src: url("../fonts/Tourney_SemiCondensed-BlackItalic.ttf");
+  font-style: italic;
+}
+
+@font-face {
+  font-family: "Tourney Semi Expanded Black";
+  src: url("../fonts/Tourney_SemiExpanded-Black.ttf");
+}
+
+@font-face {
+  font-family: "Tourney Semi Expanded Black";
+  src: url("../fonts/Tourney_SemiExpanded-BlackItalic.ttf");
+  font-style: italic;
+}

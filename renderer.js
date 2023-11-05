@@ -1,98 +1,66 @@
 let { ipcRenderer } = require("electron");
 
-
-const InputGameFolder = document.querySelector("#gamefolder");
-
-const InputModpack = document.querySelector("#modpack");
-const InputModpackOptions = Array.from(InputModpack.querySelectorAll("option"));
-
-const InputRessourcePack = document.querySelector("#ressourcepack");
-const InputRessourcePackOptions = Array.from(InputRessourcePack.querySelectorAll("option"));
-
-const InputStartWithWindows = document.querySelector("#start-win");
-const InputStartMinimized = document.querySelector("#start-minimized");
-const InputRunBackground = document.querySelector("#allow-run-background");
-
-const [ButtonFolder, ButtonMAJ, ButtonSave] = document.querySelectorAll("button");
-
-// console.log(remote)
-// const config = remote.getGlobal( "CONFIG" );
-
-
-
-
 window.addEventListener('DOMContentLoaded', async () => {
     await ipcRenderer.invoke("DOMContentLoaded");
-    
-    let config = await ipcRenderer.invoke("get-config");
+});
 
-    if (!config.wthit) {
-        document.querySelectorAll('#wthit, .wthit, [value=wthit]').forEach(element => element.remove());
-    }
+// Handle Navbar navigation
+document.querySelectorAll(".navbar .item").forEach(element => {
+    element.addEventListener('click', () => {
+        let currentPage = document.querySelector('.page.show');
+        let pages = document.querySelectorAll('.page');
 
-    ButtonFolder.addEventListener('click', async (event) => {
-        event.preventDefault();
+        let currentTarget = currentPage.getAttribute("page");
+        let target = element.getAttribute("target-page");
 
-        let result = await ipcRenderer.invoke('select-dir');
+        let targetPage = document.querySelector(`.page[page="${target}"]`);
 
-        InputGameFolder.value = result;
+        if (target == currentTarget || !targetPage) return;
+
+        
+        currentPage.classList.remove('show');
+        document.querySelector(".navbar .item.selected")?.classList.remove("selected");
+
+        targetPage.classList.add('show');
+        element.classList.add("selected");
     });
+});
 
-    // RESTORE CONFIG
-    InputGameFolder.value = config.minecraft;
+// Handle switching between old and new GUI
+document.querySelector('a[href="#old-gui"]').addEventListener('click', () => {
+    ipcRenderer.invoke('toggle-new-gui');
+});
 
-    let modpackOption = InputModpackOptions.findIndex(option => option.value == config.modpack);
-    if (modpackOption != -1) InputModpack.selectedIndex = modpackOption;
-    
-    let ressourcepackOption = InputRessourcePackOptions.findIndex(option => option.value == config.ressourcepack);
-    if (ressourcepackOption != -1) InputRessourcePack.selectedIndex = ressourcepackOption;
-
-    if (InputStartWithWindows) InputStartWithWindows.checked = config.startWithWindows;
-
-    if (InputStartMinimized) InputStartMinimized.checked = config.startMinimized;
-
-    if (InputRunBackground) InputRunBackground.checked = config.runBackground;
-
-    // HANDLE CHANGE
-    [InputGameFolder, InputModpack, InputRessourcePack, InputStartMinimized, InputRunBackground, InputStartWithWindows].forEach(element => {
-        if (!element) return;
-
-        element.addEventListener('change', () => {
-            let key = element.getAttribute('c');
-            
-            if (element.tagName == 'INPUT' && element.type == "checkbox") {
-                ipcRenderer.invoke('set-config', key, element.checked);
-            } else if (!element.value || element.value == 'null' || element.value == 'none' || element.value == 'undefined' ) {
-                ipcRenderer.invoke('set-config', key, null);
-            } else {
-                ipcRenderer.invoke('set-config', key, element.value);
-            }
-        });
-    });
-    
-    // HANDLE SAVE CONFIG
-    ButtonSave?.addEventListener("click", async (e) => {
-        e.preventDefault();
-        ipcRenderer.invoke('save-config');
-    });
-
-    // HANDLE SAVE CONFIG
-    ButtonMAJ?.addEventListener("click", async (e) => {
-        e.preventDefault();
-        ipcRenderer.invoke('update');
+// Unfocus custom select
+document.querySelectorAll("select").forEach(element => {
+    element.addEventListener('click', () => {
+        element.blur();
     });
 });
 
 
-function wthit() {
-    ipcRenderer.invoke('wthit');
-}
+// Load SVGs
+document.querySelectorAll('svg[file-to-load]').forEach(async (element) => {
+    let targetedFile = element.getAttribute('file-to-load');
+
+    let result = await fetch(targetedFile);
+    let content = await result.text();
+
+    const parser = new DOMParser();
+    const htmlDoc = parser.parseFromString(content, 'text/html');
+
+    let svg = htmlDoc.documentElement.children[1].children[0];
+    
+    element.replaceWith(svg);
+});
 
 
+// Handle Logs
+const LogDiv = document.querySelector('div.log-area');
 
-const LogDiv = document.querySelector('div.logging');
+ipcRenderer.on('web-logging', function (event, message="", tags = [], postprocess = null) {
+    console.log(message, tags)
 
-ipcRenderer.on('web-logging', function (event, message="") {
     let autoScroll = (LogDiv.scrollHeight - LogDiv.clientHeight) == LogDiv.scrollTop; 
 
     let uuid = self.crypto.randomUUID();
@@ -108,10 +76,20 @@ ipcRenderer.on('web-logging', function (event, message="") {
         } else {
             let p = document.createElement('p');
             p.textContent = line;
+            p.innerHTML = p.innerHTML.replaceAll(/\[([^\[\]]+)\]\(([^\(\)]+)\)/gmi, (string, name, link) => {
+                let a = document.createElement('a');
+                a.target = "_blank";
+                a.innerText = name;
+                a.href = link;
+
+                return a.outerHTML;
+            });
             fragment.appendChild(p);
         }
     });
     div.appendChild(fragment);
+
+    if (typeof postprocess == 'function') div = postprocess(div);
 
     LogDiv.appendChild(div);
 
@@ -177,6 +155,3 @@ ipcRenderer.on('web-logging-edit', function (event, uuid, message="", error=null
     
     if (autoScroll) LogDiv.scrollTop = LogDiv.scrollHeight - LogDiv.clientHeight;
 });
-
-
-

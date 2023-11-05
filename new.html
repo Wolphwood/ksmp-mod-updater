@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html theme="default">
+  <head>
+    <meta charset="UTF-8">
+    <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'">
+    <title>KSMP Client Updater</title>
+
+    <link href="./assets/css/themes.css" rel="stylesheet" />
+    <link href="./assets/css/fonts.css" rel="stylesheet" />
+    <link href="./assets/css/style.css" rel="stylesheet" />
+    <script src="./renderer.js" defer></script>
+  </head>
+  <body>
+    <div class="header">
+        <svg file-to-load="./assets/img/svg/icon.svg"></svg>
+        <div class="navbar">
+            <div class="item selected" target-page="home">
+                <svg file-to-load="./assets/img/svg/home.svg"></svg>
+                <p>Accueil</p>
+            </div>
+            <div class="item" target-page="mods">
+                <svg file-to-load="./assets/img/svg/mods.svg"></svg>
+                <p>Mods</p>
+            </div>
+            <div class="item" target-page="ressourcepack">
+                <svg file-to-load="./assets/img/svg/rp.svg"></svg>
+                <p>Ressource Packs</p>
+            </div>
+            <div class="item" target-page="shader">
+                <svg file-to-load="./assets/img/svg/sp.svg"></svg>
+                <p>Shader Packs</p>
+            </div>
+            <div class="item" target-page="settings">
+                <svg file-to-load="./assets/img/svg/settings.svg"></svg>
+                <p>Paramètres</p>
+            </div>
+            <div class="item" target-page="about">
+                <svg file-to-load="./assets/img/svg/about.svg"></svg>
+                <p>À propos</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="pages">
+        <div class="page show" page="home">
+            <div class="grid-container">
+                <div class="grid-item">
+                    <svg file-to-load="./assets/img/svg/home.svg"></svg>
+                    <p>Emplacement du fichier de jeu</p>
+                </div>
+                <div class="grid-item">
+                    <div class="input path">
+                        <input id="game-folder" type="text" placeholder="%appdata%/.minecraft/">
+                        <svg file-to-load="./assets/img/svg/search_file.svg"></svg>
+                    </div>
+                </div>
+                
+                <div class="grid-item">
+                    <svg file-to-load="./assets/img/svg/mods.svg"></svg>
+                    <p>Pack de mods</p>
+                </div>
+                <div class="grid-item">
+                    <div class="input select">
+                        <select id="modpack">
+                            <option>Aucun pack de mod selectionné.</option>
+                            <option value="sodium">Sodium</option>
+                            <option value="fabric">Fabric</option>
+                            <option value="optifabric">OptiFabric</option>
+                            <option value="forge">Forge</option>
+                        </select>
+                        <svg file-to-load="./assets/img/svg/expand.svg"></svg>
+                    </div>
+                </div>
+                
+                <div class="grid-item">
+                    <svg file-to-load="./assets/img/svg/rp.svg"></svg>
+                    <p>Pack de ressources</p>
+                </div>
+                <div class="grid-item">
+                    <div class="input select">
+                        <select id="ressourcepack">
+                            <option>Aucun pack de ressources selectionné.</option>
+                            <option value="normal">Narmol</option>
+                            <option value="low">Low</option>
+                            <option value="ultra-low">Potato</option>
+                        </select>
+                        <svg file-to-load="./assets/img/svg/expand.svg"></svg>
+                    </div>
+                </div>
+                
+                <div class="grid-item">
+                    <svg file-to-load="./assets/img/svg/startup.svg"></svg>
+                    <p>Lancer au démarrage dy système</p>
+                </div>
+                <div class="grid-item">
+                    <div class="input checkbox">
+                        <label class="wrapper">
+                            <input type="checkbox" id="startup">
+                            <div class="slider">
+                                <div class="knob"></div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="grid-item">
+                    <svg file-to-load="./assets/img/svg/minimized.svg"></svg>
+                    <p>Démarrer l'application en réduit</p>
+                </div>
+                <div class="grid-item">
+                    <div class="input checkbox">
+                        <label class="wrapper">
+                            <input type="checkbox" id="startup-minimized">
+                            <div class="slider">
+                                <div class="knob"></div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="grid-item">
+                    <svg file-to-load="./assets/img/svg/run_background.svg"></svg>
+                    <p>Autoriser l'application à tourner en fond</p>
+                </div>
+                <div class="grid-item">
+                    <div class="input checkbox">
+                        <label class="wrapper">
+                            <input type="checkbox" id="allow-run-background">
+                            <div class="slider">
+                                <div class="knob"></div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="grid-item full-width-item center-content">
+                    <div class="input button secondary">
+                        <label class="wrapper">
+                            <svg file-to-load="./assets/img/svg/update.svg"></svg>
+                            <p>Mettre à jour</p>
+                        </label>
+                    </div>
+                    <div class="input button primary">
+                        <label class="wrapper">
+                            <svg file-to-load="./assets/img/svg/save.svg"></svg>
+                            <p>Sauvegarde</p>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="grid-item full-width-item tall-item">
+                    <div class="log-area">
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="page" page="about">
+            <p>Retourner sur l'ancienne interface : <a href="#old-gui">[ ICI ]</a></p>
+        </div>
+    </div>
+  </body>
+</html>

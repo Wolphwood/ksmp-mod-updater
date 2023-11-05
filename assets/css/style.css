@@ -1,165 +1,435 @@
-:root {
-    --body: #fafafa;
-    --text-default: #1d1d1f;
-    --text-secondary: #86868b;
-  
-    @media (prefers-color-scheme: light) {
-      --body: #fafafa;
-      --text-default: #1d1d1f;
-    }
-  
-    @media (prefers-color-scheme: dark) {
-      --body: #161616;
-      --text-default: #f5f5f7;
-    }
-  }
+/* [======================== CUSTOM SCROLLBAR ========================] */
+/* width */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: rgba(0,0,0,0);
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,.1);
+  border-radius: 8px;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0,0,0,.2);
+}
+/* [==================================================================] */
 
 * {
+  /* border: 1px green solid; */
   margin: 0; padding: 0;
-  font-family: 'Dejavu Sans', sans-serif;
+
+  color: var(--text-color);
+
+  font-family: "Tourney Black";
+  font-weight: normal;
+  font-style: normal;
+
+  transition: color 1s ease-in-out, background 1s ease-in-out;
 }
 
-html, body {
-  height: 100%;
-  background-color: rgb(168, 168, 168);
-  /* background-image: url('../img/background0.png'); */
-  background-position: center center;
-  background-size: cover;
-  background-repeat: no-repeat;
+svg {
+  fill: white;
+}
+svg path {
+  /* fill: #0000; */
+  fill: blueviolet;
+  transition: fill 1s ease-in-out;
 }
 
-.container {
-  position: absolute;
+a {
+  color: var(--enable-color)
+}
 
-  height: 100%;
+body {
+  height: 100vh;
+  background-color: var(--secondary-color);
+  
+  color: var(--text-on);
+}
+
+
+div.header {
+  display: flex;
+  height: 8vh;
+  padding: .5rem;
+
+  background-color: var(--primary-color);
+}
+div.header > svg {
+  width: 10vh;
+}
+div.header > svg .color1 {
+  fill: var(--navbar-primary-color);
+}
+div.header > svg .color2 {
+  fill: var(--navbar-secondary-color);
+}
+
+
+
+div.navbar {
+  width: calc(100% - 10vh - 2rem); height: 100%;
+  margin-left: 1rem;
+  display: inline-flex;
+  justify-content: space-around;
+}
+
+div.navbar div.item {
+  display: inline-flex;
+  align-items: center;
+}
+
+div.navbar div.item > img, div.navbar div.item > svg {
+  width: 5vh;
+  margin: .2rem;
+}
+
+/* NAVBAR SVG ICONS */
+/* Transition */
+div.navbar div.item > svg > * {
+  transition: fill 250ms linear;
+}
+/* Normal */
+div.navbar div.item > svg .border {
+  fill: var(--navbar-primary-color);
+}
+div.navbar div.item > svg .background {
+  fill: #0000;
+}
+
+/* Hover */
+div.navbar div.item.selected > svg .border {
+  fill: #0000;
+}
+div.navbar div.item.selected > svg .background {
+  fill: var(--navbar-secondary-color);
+}
+
+/* Hover */
+div.navbar div.item:hover > svg .border {
+  fill: var(--navbar-secondary-color);
+}
+
+/* Selected + Hover */
+div.navbar div.item.selected:hover > svg .border {
+  fill: #0000;
+}
+
+
+div.navbar div.item > p {
+  margin: 0 .5rem 0 .5rem;
+  font-weight: bold;
+  
+  color: var(--text-secondary-color);
+
+  transition: color 250ms linear;
+
+  /* font-size: 1em; */
+}
+
+/* Selected & Hover Navbar items */
+
+div.navbar div.item:hover > p, div.navbar div.item.selected > p {
+  color: var(--text-tertiary-color);
+}
+
+
+.pages {
+  position: relative;
+  
   width: 100%;
+  height: calc(100% - 10vh - 1rem);
+}
 
+.pages .page {
+  position: absolute;
+  top: 10px; left: 0;
+  
+  z-index: -99;
+  
+  width: 100%; height: calc(100% - 2rem - 10px);
+  /* width: calc(100% - 2rem); height: calc(100% - 2rem - 10px); */
+  
+  opacity: 0;
+
+  padding: 0;
+  /* padding: 1rem; */
+
+  transition: all 250ms linear;
+}
+
+.pages .page.show {
+  /* display: block; */
+  top: 0;
+  z-index: 1;
+  
+  opacity: 1;
+
+  height: calc(100% - 2rem);
+}
+
+.page .grid-container {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-auto-rows: auto;
+  gap: 0px;
+}
+.page .grid-container .grid-item {
   display: flex;
-  flex-direction: column;
-  justify-content: flex-end
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+
+  font-size: 1em;
+
+  padding: 10px;
+
+  /* border: 1px solid #000; */
+}
+.page .grid-container .grid-item.center-content {
+  justify-content: center;
+}
+.page .grid-container .grid-item.full-width-item {
+  grid-column: span 2;
 }
 
-.column {
-  flex: 1; /* Les colonnes prennent autant d'espace que possible */
-  border: 1px solid #ccc; /* Ajoute une bordure pour mieux visualiser les colonnes */
-  padding: 0.5rem; /* Ajoute de l'espace intérieur pour séparer le contenu */
+.grid-item > svg {
+  width: 5%;
+  margin-right: 1rem;
+}
+.grid-item > svg .border {
+  fill: var(--text-primary-color);
+}
+.grid-item > svg .background {
+  fill: #0000;
 }
 
-
-table#config {
-    width: 100%;
-    /* border: 1px red solid; */
+.grid-item p {
+  color: var(--text-primary-color);
 }
 
-table#config tbody tr td {
-    text-align: center;
-    padding: 0.5rem;
-}
-
-table#config tbody tr td > * {
-    width: 100%;
-}
-
-table#config tbody tr td:first-child {
-    width: 25%;
-    text-align: right;
-}
-
-td.flex {
+/* [============ GENERAL CUSTOM INPUTS ============] */
+div.input {
   display: flex;
-}
-td.flex > * {
-  flex: 1;
-}
+  align-items: center;
 
-
-button.folder {
-  max-width: 1.5rem;
-  height: 1.5rem;
-}
-button.folder img {
-  max-width:100%;
-  max-height:100%;
-}
-
-
-
-
-
-
-
-
-
-.toggler-wrapper {
-    display: block;
-    width: 45px;
-    height: 25px;
-    cursor: pointer;
-    position: relative;
-  }
+  width: 100%;
   
-  .toggler-wrapper input[type="checkbox"] {
-    display: none;
-  }
+  padding: 8px;
   
-  .toggler-wrapper input[type="checkbox"]:checked+.toggler-slider {
-    background-color: #44cc66;
-  }
+  background-color: var(--tertiary-color);
   
-  .toggler-wrapper .toggler-slider {
-    background-color: #ccc;
-    position: absolute;
-    border-radius: 100px;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    -webkit-transition: all 300ms ease;
-    transition: all 300ms ease;
-  }
-  
-  .toggler-wrapper .toggler-knob {
-    position: absolute;
-    -webkit-transition: all 300ms ease;
-    transition: all 300ms ease;
-  }
-
-
-
-
-.toggler-wrapper input[type="checkbox"]:checked+.toggler-slider .toggler-knob {
-    left: calc(100% - 19px - 3px);
-    /* background-image: url(../img/lock-fill.svg); */
+  border-radius: 8px;
 }
-  
-.toggler-wrapper .toggler-knob {
-    width: calc(25px - 6px);
-    height: calc(25px - 6px);
-    border-radius: 50%;
-    left: 3px;
-    top: 3px;
-    background-color: #fff;
-    /* background-image: url(../img/lock-unlock-fill.svg); */
-    background-repeat: no-repeat;
-    background-size: 80%;
-    background-position: center;
+div.input > * {
+  font-size: 1em;
+}
+/* [===============================================] */
+
+/* [============ CUSTOM PATH INPUT ============] */
+div.input.path svg {
+  width: 4%;
+  float: right;
+}
+div.input.path svg .border {
+  fill: var(--text-primary-color);
+}
+div.input.path svg .background {
+  fill: #0000;
 }
 
+div.input.path input[type="text"] {
+  width: 95%;
+  height: 100%;
+  background: none;
+  outline: none;
+  border: none;
+}
+div.input.path input[type="text"]::placeholder {
+  color: rgba(128, 128, 128, 0.5);
+  mix-blend-mode: difference;
+}
+/* [===========================================] */
 
-.logging {
-  overflow: scroll;
+/* [============== CUSTOM SELECT ==============] */
+div.input.select select {
+  position: relative;
+  
+  z-index: 1;
+  
+  width: 100%;
+  
+  border: none;
+  outline: none;
+  
+  background: none;
+  
+  appearance: none;
+  cursor: pointer;
+  user-select: none;
+}
+div.input.select svg {
+  position: absolute;
+  right: 20px;
+  
+  height: 5%;
+  
+  transform-origin: center;
+  
+  transition: transform 250ms linear;
+}
+div.input.select svg .border {
+  fill: var(--text-primary-color);
+}
+div.input.select svg .background {
+  fill: #0000;
 }
 
-.logging::-webkit-scrollbar {
+/* Expanded */
+div.input.select select:focus {
+  pointer-events: none;
+}
+div.input.select select:focus ~ svg {
+  transform: scaleY(-1);
+}
+/* [===========================================] */
+
+
+/* [============== CUSTOM TOGGLE ==============] */
+div.input.checkbox {
+  /* vars */
+  --knob-size: 22px;
+
+  /* style */
+  cursor: pointer;
+
+  /* override default custom input style */
+  width: auto;
+  padding: 0;
+  background: none;
+  border-radius: 0;
+}
+
+div.input.checkbox {
+  position: relative;
+}
+
+div.input.checkbox input[type="checkbox"] {
   display: none;
 }
 
-.logging {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
+div.input.checkbox .slider {
+  position: relative;
+
+  width: calc(var(--knob-size) * 2.5);
+  height: calc(var(--knob-size) * 1);
+
+  background: var(--disable-color);
+  
+  padding: 4px;
+  border-radius: 8px;
+
+  transition: all 300ms ease;
 }
 
+div.input.checkbox .knob {
+  position: relative;
+  transition: all 300ms ease;
 
-.error {
-  color: rgb(145, 0, 0);
+  top: 0; left: 0;
+
+  width: var(--knob-size);
+  height: var(--knob-size);
+  
+  background-color: var(--secondary-color);
+  
+  border-radius: 5px;
 }
+
+/* checked */
+div.input.checkbox input[type="checkbox"]:checked+.slider {
+  background-color: var(--enable-color);
+}
+div.input.checkbox input[type="checkbox"]:checked+.slider .knob {
+  left: calc(var(--knob-size) * 1.5);
+}
+
+/* hover */
+div.input.checkbox:hover .knob {
+  background-color: var(--quaternary-color);
+}
+/* [===========================================] */
+
+/* [============== CUSTOM BUTTON ==============] */
+div.input.button {
+  /* style */
+  cursor: pointer;
+  margin: 0 20px;
+
+  /* override default custom input style */
+  width: auto;
+  padding: 0;
+  background: none;
+  border-radius: 0;
+}
+
+div.input.button .wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+  
+  padding: 4px 20px;
+  border-radius: 8px;
+}
+div.input.button.primary .wrapper {
+  background: var(--enable-color);
+}
+div.input.button.secondary .wrapper {
+  background: var(--disable-color);
+}
+
+div.input.button .wrapper svg {
+  width: 4vh;
+  margin-right: 10px;
+}
+div.input.button .wrapper svg .border {
+  transition: fill 300ms ease;
+  fill: var(--secondary-color);
+}
+div.input.button .wrapper svg .background {
+  fill: none;
+}
+
+div.input.button .wrapper p {
+  transition: color 300ms ease;
+  color: var(--secondary-color);
+}
+
+/* hover */
+div.input.button:hover svg .border, div.input.button:hover p {
+  fill: var(--quaternary-color);
+  color: var(--quaternary-color);
+}
+
+/* [===========================================] */
+
+
+/* [============== LOG AREA ==============] */
+.log-area {
+  width: 100%;
+  height: 29.7vh;
+
+  padding: 10px;
+  
+  background: var(--tertiary-color);
+
+  border-radius: 10px;
+}
+/* [======================================] */

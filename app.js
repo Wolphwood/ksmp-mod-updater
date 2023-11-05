@@ -18,21 +18,40 @@ let IntervalSearchUpdate = null;
 const createWindow = () => {
     if (mainWindow) return;
     
-    mainWindow = new BrowserWindow({
-        width: 800,
-        height: 600,
-        webPreferences: {
-            nodeIntegration: true,
-            contextIsolation: false,
-            enableRemoteModule: true,
-            preload: path.join(__dirname, 'preload.js')
-        },
-        resizable: false,
-        autoHideMenuBar: true,
-        icon: path.join(app.getAppPath(), 'assets/img/pack.png'),
-    });
-
-    mainWindow.loadFile('index.html');
+    if (CONFIG.betaGUI ?? false) {
+        mainWindow = new BrowserWindow({
+            width: 1920/1.5,
+            height: 1080/1.5,
+            webPreferences: {
+                nodeIntegration: true,
+                contextIsolation: false,
+                enableRemoteModule: true,
+                preload: path.join(__dirname, 'preload.js')
+            },
+            resizable: false,
+            autoHideMenuBar: true,
+            icon: path.join(app.getAppPath(), 'assets/img/pack.png'),
+        });
+    
+        mainWindow.loadFile('./new.html');
+    } else {
+        mainWindow = new BrowserWindow({
+            width: 800,
+            height: 600,
+            webPreferences: {
+                nodeIntegration: true,
+                contextIsolation: false,
+                enableRemoteModule: true,
+                preload: path.join(__dirname, 'preload.js')
+            },
+            resizable: false,
+            autoHideMenuBar: true,
+            icon: path.join(app.getAppPath(), 'assets/img/pack.png'),
+        });
+    
+        mainWindow.loadFile('./index.html');
+    }
+    // mainWindow.loadFile('./pages/home.html');
     // mainWindow.webContents.openDevTools();
 }
 
@@ -172,9 +191,9 @@ async function SearchUpdate(inBackground = false) {
     // Others
     othersNeedUpdate = await UpdateOthers(inBackground, true);
     
-    log.info("modsNeedUpdate          :", modsNeedUpdate)
-    log.info("ressourcepackNeedUpdate :", ressourcepackNeedUpdate)
-    log.info("othersNeedUpdate        :", othersNeedUpdate)
+    log.info("modsNeedUpdate          :", modsNeedUpdate);
+    log.info("ressourcepackNeedUpdate :", ressourcepackNeedUpdate);
+    log.info("othersNeedUpdate        :", othersNeedUpdate);
     return modsNeedUpdate || ressourcepackNeedUpdate || othersNeedUpdate;
 }
 
@@ -231,7 +250,7 @@ async function _search_update(fromTray = false) {
 
 ipcMain.handle("DOMContentLoaded", async ( event ) => {
     mainWindow.webContents.send('web-logging', `KSMP Client Updater v${app.getVersion()}`);
-    mainWindow.webContents.send('web-logging', `Made by Wolphwood and beaucoup beaucoup beaucoup de sueur.`);
+    mainWindow.webContents.send('web-logging', `Fait par [Wolphwood](https://wolphwood.ovh) et [Booluigi](https://twitter.com/booluigi10) avec beaucoup BEAUCOUP DE SUEUR !`);
     mainWindow.webContents.send('web-logging', '');
 
     
@@ -245,7 +264,6 @@ ipcMain.handle("update", async ( event ) => {
     
     let needUpdate = await SearchUpdate();
     
-    
     if (needUpdate) {
         mainWindow.webContents.send('web-logging', '.\nWell, you need an update :)');
     } else {
@@ -253,7 +271,6 @@ ipcMain.handle("update", async ( event ) => {
     }
 
     if (!needUpdate) return;
-
     
     mainWindow.webContents.send('web-logging', '.\n');
     mainWindow.webContents.send('web-logging', 'Updating your datas...\n');
@@ -274,6 +291,15 @@ ipcMain.handle("wthit", async ( event ) => {
     app.relaunch();
     app.exit();
 });
+
+ipcMain.handle("toggle-new-gui", async ( event ) => {
+    CONFIG.betaGUI = !(CONFIG.betaGUI ?? false) ;
+    await SaveConfig(CONFIG);
+    
+    app.relaunch();
+    app.exit();
+});
+
 
 autoUpdater.on('update-available', () => {
     let notification = new Notification({

@@ -30,7 +30,7 @@
     "publish": [
       {
         "provider": "generic",
-        "url": "http://vps.wolphwood.ovh:8080/ksmp-api/app/version/last"
+        "url": "https://vps.wolphwood.ovh/ksmp-api/app/version/last"
       }
     ],
     "portable": {
