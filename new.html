@@ -2,13 +2,24 @@
 <html theme="default">
   <head>
     <meta charset="UTF-8">
-    <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'">
-    <title>KSMP Client Updater</title>
 
+    <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://cdn.modrinth.com; img-src 'self' https://cdn.modrinth.com">
+
+    
+    <title>KSMP Client Updater</title>
+    
+    <link rel="stylesheet" type="text/css" href="./assets/css/toastify.css">
+    <script type="text/javascript" src="./assets/js/front/toastify.js" defer></script>
+    
     <link href="./assets/css/themes.css" rel="stylesheet" />
     <link href="./assets/css/fonts.css" rel="stylesheet" />
     <link href="./assets/css/style.css" rel="stylesheet" />
+    
+    <script src="./assets/js/front/functions.js" defer></script>
+    <script src="./assets/js/front/ee.js" defer></script>
+    <script src="./assets/js/front/logs.js" defer></script>
+    <script src="./assets/js/front/notifications.js" defer></script>
     <script src="./renderer.js" defer></script>
   </head>
   <body>
@@ -27,7 +38,7 @@
                 <svg file-to-load="./assets/img/svg/rp.svg"></svg>
                 <p>Ressource Packs</p>
             </div>
-            <div class="item" target-page="shader">
+            <div class="item" target-page="shaderpack">
                 <svg file-to-load="./assets/img/svg/sp.svg"></svg>
                 <p>Shader Packs</p>
             </div>
@@ -51,7 +62,7 @@
                 </div>
                 <div class="grid-item">
                     <div class="input path">
-                        <input id="game-folder" type="text" placeholder="%appdata%/.minecraft/">
+                        <input name="game-folder" type="text" placeholder="%appdata%/.minecraft/">
                         <svg file-to-load="./assets/img/svg/search_file.svg"></svg>
                     </div>
                 </div>
@@ -62,12 +73,8 @@
                 </div>
                 <div class="grid-item">
                     <div class="input select">
-                        <select id="modpack">
-                            <option>Aucun pack de mod selectionné.</option>
-                            <option value="sodium">Sodium</option>
-                            <option value="fabric">Fabric</option>
-                            <option value="optifabric">OptiFabric</option>
-                            <option value="forge">Forge</option>
+                        <select name="modpack">
+                            <option value="null">Aucun pack de mod selectionné.</option>
                         </select>
                         <svg file-to-load="./assets/img/svg/expand.svg"></svg>
                     </div>
@@ -79,11 +86,21 @@
                 </div>
                 <div class="grid-item">
                     <div class="input select">
-                        <select id="ressourcepack">
-                            <option>Aucun pack de ressources selectionné.</option>
-                            <option value="normal">Narmol</option>
-                            <option value="low">Low</option>
-                            <option value="ultra-low">Potato</option>
+                        <select name="ressourcepack">
+                            <option value="null">Aucun pack de ressources selectionné.</option>
+                        </select>
+                        <svg file-to-load="./assets/img/svg/expand.svg"></svg>
+                    </div>
+                </div>
+
+                <div class="grid-item">
+                    <svg file-to-load="./assets/img/svg/sp.svg"></svg>
+                    <p>Pack visuels</p>
+                </div>
+                <div class="grid-item">
+                    <div class="input select">
+                        <select name="shaderpack">
+                            <option value="null">Aucun shader pack selectionné.</option>
                         </select>
                         <svg file-to-load="./assets/img/svg/expand.svg"></svg>
                     </div>
@@ -96,7 +113,7 @@
                 <div class="grid-item">
                     <div class="input checkbox">
                         <label class="wrapper">
-                            <input type="checkbox" id="startup">
+                            <input type="checkbox" name="startup">
                             <div class="slider">
                                 <div class="knob"></div>
                             </div>
@@ -111,7 +128,7 @@
                 <div class="grid-item">
                     <div class="input checkbox">
                         <label class="wrapper">
-                            <input type="checkbox" id="startup-minimized">
+                            <input type="checkbox" name="startup-minimized">
                             <div class="slider">
                                 <div class="knob"></div>
                             </div>
@@ -126,7 +143,7 @@
                 <div class="grid-item">
                     <div class="input checkbox">
                         <label class="wrapper">
-                            <input type="checkbox" id="allow-run-background">
+                            <input type="checkbox" name="allow-run-background">
                             <div class="slider">
                                 <div class="knob"></div>
                             </div>
@@ -142,7 +159,7 @@
                         </label>
                     </div>
                     <div class="input button primary">
-                        <label class="wrapper">
+                        <label name="save" class="wrapper">
                             <svg file-to-load="./assets/img/svg/save.svg"></svg>
                             <p>Sauvegarde</p>
                         </label>
@@ -150,15 +167,76 @@
                 </div>
 
                 <div class="grid-item full-width-item tall-item">
-                    <div class="log-area">
+                    <div class="log-area"></div>
+                </div>
+            </div>
+        </div>
 
+        <div class="page" page="mods">
+            <div class="grid-container">
+                <div class="grid-item full-width-item center-content">
+                    <svg class="test" file-to-load="./assets/img/svg/mods.svg"></svg>
+                    <h2>Pack de mods</h2>
+                </div>
+                <div class="grid-item full-width-item center-content">
+                    <div class="input w-50 select">
+                        <select name="modpack">
+                            <option value="null">Aucun pack de mod selectionné.</option>
+                        </select>
+                        <svg file-to-load="./assets/img/svg/expand.svg"></svg>
                     </div>
+                </div>
+                
+                <div class="grid-item full-width-item center-content">
+                    <div class="separator"></div>
+                </div>
+
+                <div class="grid-item full-width-item">
+                    <div class="mods"></div>
+                </div>
+
+                <div class="grid-item full-width-item center-content">
+                    <div class="separator"></div>
+                </div>
+
+                <div class="grid-item full-width-item center-content">
+                    <div class="input button secondary">
+                        <label name="install-mod" class="wrapper">
+                            <svg file-to-load="./assets/img/svg/update.svg"></svg>
+                            <p>Installation</p>
+                        </label>
+                    </div>
+                    <div class="input button primary">
+                        <label name="save" class="wrapper">
+                            <svg file-to-load="./assets/img/svg/save.svg"></svg>
+                            <p>Sauvegarde</p>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="grid-item full-width-item center-content">
+                    <div class="void" style="--size: 1rem;"></div>
                 </div>
             </div>
         </div>
         
+        <div class="page" page="ressourcepack">
+            <h2>L'affichage et l'installation automatique arrivent bientôt !</h2>
+            <div class="void"></div>
+        </div>
+        
+        <div class="page" page="shaderpack">
+            <h2>L'affichage et l'installation automatique arrivent bientôt !</h2>
+            <div class="void"></div>
+        </div>
+        
+        <div class="page" page="settings">
+            <h2>Les settings arrivent bientôt !</h2>
+        </div>
+
         <div class="page" page="about">
-            <p>Retourner sur l'ancienne interface : <a href="#old-gui">[ ICI ]</a></p>
+            <h2>Plus d'infos et de crédits bientôt !</h2>
+            <p>Un grand merci à <a href="https://twitter.com/booluigi10">Booluigi</a> pour son aide sur le design 🙏</p>
         </div>
     </div>
   </body>

@@ -6,10 +6,13 @@ const { autoUpdater } = require("electron-updater");
 const log = require('electron-log');
 
 module.exports = {
-    AppDirectory: __dirname,
+    GetConfigFromApp: () => CONFIG,
+    CallAPI,
 };
 
-const { LoadConfig, SaveConfig, ReadEnvVariables, downloadFile, ArrayContains, Wait, UpdateMods, UpdateRessourcePack, UpdateOthers } = require('./assets/js/data');
+const { WebLog, Wait, downloadFileWithProgress, downloadFile, Toastify } = require('./assets/js/back/functions.js');
+const { LoadConfig, SaveConfig } = require('./assets/js/back/data.js');
+const { SearchModUpdate, ApplyModUpdate, SearchRessourcepackUpdate, SearchShaderpackUpdate, SearchConfigUpdate } = require('./assets/js/back/update.js');
 
 let mainWindow = null;
 let CONFIG = LoadConfig();
@@ -18,41 +21,58 @@ let IntervalSearchUpdate = null;
 const createWindow = () => {
     if (mainWindow) return;
     
-    if (CONFIG.betaGUI ?? false) {
-        mainWindow = new BrowserWindow({
-            width: 1920/1.5,
-            height: 1080/1.5,
-            webPreferences: {
-                nodeIntegration: true,
-                contextIsolation: false,
-                enableRemoteModule: true,
-                preload: path.join(__dirname, 'preload.js')
-            },
-            resizable: false,
-            autoHideMenuBar: true,
-            icon: path.join(app.getAppPath(), 'assets/img/pack.png'),
-        });
+    // if (CONFIG.betaGUI ?? false) {
+    //     mainWindow = new BrowserWindow({
+    //         width: 1920/1.5,
+    //         height: 1080/1.5,
+    //         webPreferences: {
+    //             nodeIntegration: true,
+    //             contextIsolation: false,
+    //             enableRemoteModule: true,
+    //             preload: path.join(__dirname, 'preload.js')
+    //         },
+    //         resizable: false,
+    //         autoHideMenuBar: true,
+    //         icon: path.join(app.getAppPath(), 'assets/img/pack.png'),
+    //     });
     
-        mainWindow.loadFile('./new.html');
-    } else {
-        mainWindow = new BrowserWindow({
-            width: 800,
-            height: 600,
-            webPreferences: {
-                nodeIntegration: true,
-                contextIsolation: false,
-                enableRemoteModule: true,
-                preload: path.join(__dirname, 'preload.js')
-            },
-            resizable: false,
-            autoHideMenuBar: true,
-            icon: path.join(app.getAppPath(), 'assets/img/pack.png'),
-        });
+    //     mainWindow.loadFile('./new.html');
+    // } else {
+    //     mainWindow = new BrowserWindow({
+    //         width: 800,
+    //         height: 600,
+    //         webPreferences: {
+    //             nodeIntegration: true,
+    //             contextIsolation: false,
+    //             enableRemoteModule: true,
+    //             preload: path.join(__dirname, 'preload.js')
+    //         },
+    //         resizable: false,
+    //         autoHideMenuBar: true,
+    //         icon: path.join(app.getAppPath(), 'assets/img/pack.png'),
+    //     });
     
-        mainWindow.loadFile('./index.html');
-    }
+    //     mainWindow.loadFile('./index.html');
+    // }
+
+    mainWindow = new BrowserWindow({
+        width: 1920/1.5,
+        height: 1080/1.5,
+        webPreferences: {
+            nodeIntegration: true,
+            contextIsolation: false,
+            enableRemoteModule: true,
+            preload: path.join(__dirname, 'preload.js')
+        },
+        resizable: false,
+        autoHideMenuBar: true,
+        icon: path.join(app.getAppPath(), 'assets/img/pack.png'),
+    });
+
+    mainWindow.loadFile('./new.html');
+
     // mainWindow.loadFile('./pages/home.html');
-    // mainWindow.webContents.openDevTools();
+    if (CONFIG.debug) mainWindow.webContents.openDevTools();
 }
 
 function createTray() {
@@ -80,16 +100,19 @@ if (process.platform === 'win32') {
 }
 
 app.whenReady().then(async () => {
+    log.info(app.getPath("userData"))
+
     autoUpdater.checkForUpdates();
 
     createTray();
+
     if (!CONFIG.startMinimized) createWindow();
 
     let updateFound = await _search_update();
-    if (CONFIG.startMinimized && !CONFIG.runBackground) {
-        await Wait(updateFound ? 5 * 60_000 : 60_000);
-        app.quit();
-    }
+    // if (CONFIG.startMinimized && !CONFIG.runBackground) {
+    //     await Wait(updateFound ? 5 * 60_000 : 60_000);
+    //     app.quit();
+    // }
 
 
     app.on('activate', () => {
@@ -127,12 +150,12 @@ ipcMain.handle("get-config", ( event ) => {
     return CONFIG;
 });
 
-ipcMain.handle("set-config", ( event, key, value ) => {
-    if (key == "startWithWindows") {
-        setStarupAtLogin(value);
-    }
+ipcMain.handle("set-config", ( event, config ) => {
+    if (!config) return CONFIG;
     
-    CONFIG[key] = value;
+    CONFIG = config;
+    setStarupAtLogin(config.startWithWindows);
+    
     return CONFIG;
 });
 
@@ -140,61 +163,107 @@ ipcMain.handle("save-config", ( event, config ) => {
     return SaveConfig(config ?? CONFIG);
 });
 
+ipcMain.handle("api", async ( event, request, options ) => {
+    return CallAPI(request, options);
+});
+
+async function CallAPI(request, options) {
+    const API = `${CONFIG?.api?.url ?? 'https://vps.wolphwood.ovh'}/${CONFIG?.api?.home ?? 'ksmp-api'}/v2/`;
+    
+    let data = null;
+
+    let fetchURL = (API + request).replace(/\/+/gmi, '/');
+
+    try {
+        let response = await fetch(fetchURL);
+
+        let contentType = response.headers.get('content-type');
+        let contentDisposition = response.headers.get('content-disposition');
+
+        if (response.status == 200) {
+            if (contentType.includes('text/html')) {
+                data = await response.clone().text();
+            } else
+            
+            if (contentType.includes('application/json')) {
+                data = await response.clone().json();
+            } else
+            
+            if (contentDisposition !== null) {
+                let { progress, folder, filename } = options ?? {};
+
+                if (folder) {
+                    if (progress) {
+                        try {
+                            data = await downloadFileWithProgress(fetchURL, folder, filename, response);
+                        } catch (error) {
+                            console.error(error)
+                        }
+                    } else {
+                        data = await downloadFile(fetchURL, folder, filename, null, null, null, null, response);
+                    };
+                } else {
+                    data = {
+                        "error": "no-destination",
+                        "message": "A destination folder is required to download a file."
+                    }
+                }
+            } else {
+                data = {
+                    "error": "unsuported-content-type",
+                    "message": `Unsuported content type ${contentType}`,
+                    "request": `${response.status}: ${response.statusText}`
+                }
+            }
+        } else {
+            data = {
+                "error": response.status,
+                "message": response.statusText
+            }
+        }
+    } catch (err) {
+        data = {
+            "error": err.name,
+            "message": err.message,
+            "details": err,
+            "cause": err.cause
+        }
+    }
+
+    if (data?.error) {
+        if (data.details) {
+            if (data.details.cause.code == "ECONNREFUSED") {
+                await mainWindow.webContents.send('web-logging-error', `FETCH ERROR: KSMP-API cannot be reached at '[${API}](${API})'`);
+                await mainWindow.webContents.send('notification', 'error', `FETCH ERROR: KSMP-API cannot be reached at '[${API}](${API})'`);
+            } else {
+                await mainWindow.webContents.send('web-logging-error', `${data.error}: ${data.message}\n${data.details}\n${data.cause}`);
+                await mainWindow.webContents.send('notification', 'error', `${data.error}: ${data.message}\n${data.details}\n${data.cause}`);
+            }
+        } else {
+            await mainWindow.webContents.send('web-logging-error', `${data.error}: ${data.message}`);
+            await mainWindow.webContents.send('notification', 'error', `${data.error}: ${data.message}`);
+        }
+        log.error('FETCH ERROR:', data.details ?? data);
+    }
+
+    return data;
+}
+
+
 async function SearchUpdate(inBackground = false) {
-    let needUpdate = false;
+    let mods;
 
-    let modsNeedUpdate, ressourcepackNeedUpdate;
+    let ressourcepack;
 
-    // Mods
-    if (CONFIG.modpack) {
-        modsNeedUpdate = await UpdateMods(inBackground, true);
-    }
-    
-    // Ressourcepack
-    if (CONFIG.ressourcepack) {
-        ressourcepackNeedUpdate = await UpdateRessourcePack(inBackground, true);
-    }
+    let shaderpack;
 
-    // Others - Configs
-    // let emojitypeConfigFile = ReadEnvVariables(path.join(CONFIG.minecraft, '/config/emojitype.json'));
-    // let apiEmojitype = await fetch(API + '/others/config/emojitype').then(r => r.json());
-    
-    // if (fs.existsSync(emojitypeConfigFile)) {
-    //     let clientEmojitype = JSON.parse(fs.readFileSync(emojitypeConfigFile, 'utf8'));
+    let config;
 
-    //     let updatedEmojis = clientEmojitype.map(emoji => {
-    //         let [name, value] = emoji.split(';');
-
-    //         let foundEmoji = apiEmojitype.find(nEmoji => {
-    //             let [nName, nValue] = nEmoji.split(';');
-    //             return nName == name;
-    //         });
-
-    //         if (foundEmoji) {
-    //             return foundEmoji;
-    //         } else {
-    //             return emoji;
-    //         }
-    //     });
-        
-    //     emojisNeedUpdate = ArrayContains(clientEmojitype, updatedEmojis);
-
-    //     if (emojisNeedUpdate) {
-    //         if (!inBackground) mainWindow.webContents.send('web-logging', `.\nNew emojis are available!`);
-    //         needUpdate = true;
-    //     }
-    // } else {
-    //     if (!inBackground) mainWindow.webContents.send('web-logging', `.\nNo emojitype config detected.`);
-    //     needUpdate = true;
-    // }
-
-    // Others
-    othersNeedUpdate = await UpdateOthers(inBackground, true);
-    
-    log.info("modsNeedUpdate          :", modsNeedUpdate);
-    log.info("ressourcepackNeedUpdate :", ressourcepackNeedUpdate);
-    log.info("othersNeedUpdate        :", othersNeedUpdate);
-    return modsNeedUpdate || ressourcepackNeedUpdate || othersNeedUpdate;
+    return {
+        mods: mods ?? false,
+        ressourcepack: ressourcepack ?? false,
+        others: config ?? false
+    };
 }
 
 async function ApplyUpdate(inBackground = false) {
@@ -222,40 +291,82 @@ async function ApplyUpdate(inBackground = false) {
 
 async function _search_update(fromTray = false) {
     let needUpdate = await SearchUpdate(true);
+    let forceUpdate = false;
 
-    if (needUpdate) {
-        let notification = new Notification({
-            icon: path.join(app.getAppPath(), 'assets/img/pack.png'),
-            title: "Update available",
-            body: "Update for mods, ressource pack or other config is available!"
-        });
-    
-        notification.on('click', createWindow);
-    
-        notification.show();
-    } else if (fromTray) {
-        let notification = new Notification({
-            icon: path.join(app.getAppPath(), 'assets/img/pack.png'),
-            title: "No Update available",
-            body: "You are already up to date :)"
-        });
-        
-        notification.on('click', createWindow);
-    
-        notification.show();
-    }
+    BrowserWindow.getAllWindows().forEach(win => {
+        if (needUpdate.mods || forceUpdate) {
+            let text = `Une mise à jour du modpack est disponible!`;
+            
+            win.webContents.send('web-logging', text);
+            win.webContents.send('notification', 'new-update', {
+                text,
+                avatar: path.join(app.getAppPath(), 'assets/img/pack.png'),
+                // onClick: function () { 
+                //     ipcRenderer.invoke("update-quit-and-install");
+                // }
+            });
+        }
+        if (needUpdate.ressourcepack || forceUpdate) {
+            let text = `Une mise à jour du ressourcepack est disponible!`;
+            
+            win.webContents.send('web-logging', text);
+            win.webContents.send('notification', 'new-update', {
+                text,
+                avatar: path.join(app.getAppPath(), 'assets/img/pack.png'),
+                // onClick: function () { 
+                //     ipcRenderer.invoke("update-quit-and-install");
+                // }
+            });
+        }
+        if (needUpdate.others || forceUpdate) {
+            let text = `Une mise à jour de configuration est disponible!`;
+            
+            win.webContents.send('web-logging', text);
+            win.webContents.send('notification', 'new-update', {
+                text,
+                avatar: path.join(app.getAppPath(), 'assets/img/pack.png'),
+                // onClick: function () { 
+                //     ipcRenderer.invoke("update-quit-and-install");
+                // }
+            });
+        }
+
+        if (!Object.keys(needUpdate).some(key => needUpdate[key]) && fromTray) {
+            BrowserWindow.getAllWindows().forEach(win => {
+                let text = `Tout est déjà à jour :)`;
+                win.webContents.send('web-logging', text);
+                win.webContents.send('notification', 'new-update', {
+                    text,
+                    avatar: path.join(app.getAppPath(), 'assets/img/pack.png'),
+                    // onClick: function () { 
+                    //     ipcRenderer.invoke("update-quit-and-install");
+                    // }
+                });
+            });
+        }
+    });
 
     return needUpdate;
 }
 
 ipcMain.handle("DOMContentLoaded", async ( event ) => {
-    mainWindow.webContents.send('web-logging', `KSMP Client Updater v${app.getVersion()}`);
-    mainWindow.webContents.send('web-logging', `Fait par [Wolphwood](https://wolphwood.ovh) et [Booluigi](https://twitter.com/booluigi10) avec beaucoup BEAUCOUP DE SUEUR !`);
-    mainWindow.webContents.send('web-logging', '');
+    await WebLog('normal', `KSMP Client Updater v${app.getVersion()}`);
+    await WebLog('normal', `Fait par [Wolphwood](https://wolphwood.ovh) et [Booluigi](https://twitter.com/booluigi10) avec beaucoup BEAUCOUP DE SUEUR !`);
+    await WebLog('normal', '');
 
+    console.log("==========================================");
+    console.log("SEARCHING AN UPDATE");
+    let modNeedUpate = await SearchModUpdate();
+    if (modNeedUpate) console.log(modNeedUpate, await ApplyModUpdate());
+    console.log("==========================================");
+
+    // let testFilename = path.join(app.getPath("temp"), "test.zip");
+    // if (fs.existsSync(testFilename)) fs.unlinkSync(testFilename);
+    // downloadFileWithProgress("http://vps.wolphwood.ovh:8080/ksmp-api/ressourcepack/get/normal/2.0", app.getPath("temp"), 'test.zip');
+    
     
     // let testFilename = path.join(app.getPath("temp"), "test.zip");
-    // if (fs.existsSync(testFilename))fs.unlinkSync(testFilename);
+    // if (fs.existsSync(testFilename)) fs.unlinkSync(testFilename);
     // downloadFile("http://vps.wolphwood.ovh:8080/ksmp-api/ressourcepack/get/normal/2.0", testFilename);
 });
 
@@ -292,41 +403,56 @@ ipcMain.handle("wthit", async ( event ) => {
     app.exit();
 });
 
-ipcMain.handle("toggle-new-gui", async ( event ) => {
-    CONFIG.betaGUI = !(CONFIG.betaGUI ?? false) ;
-    await SaveConfig(CONFIG);
+// ipcMain.handle("toggle-new-gui", async ( event ) => {
+//     CONFIG.betaGUI = !(CONFIG.betaGUI ?? false) ;
+//     await SaveConfig(CONFIG);
     
+//     app.relaunch();
+//     app.exit();
+// });
+
+ipcMain.handle("restart", async ( event ) => {
     app.relaunch();
     app.exit();
 });
 
 
 autoUpdater.on('update-available', () => {
-    let notification = new Notification({
-        icon: path.join(app.getAppPath(), 'assets/img/pack.png'),
-        title: "New Update Available!",
-        body: "An update is available for the app."
+    BrowserWindow.getAllWindows().forEach(win => {
+        let text = `Une mise à jour de l'application est disponible`;
+        win.webContents.send('web-logging', text);
+        win.webContents.send('notification', 'new-app-update', {
+            text,
+            avatar: path.join(app.getAppPath(), 'assets/img/pack.png'),
+            onClick: function () { 
+                ipcRenderer.invoke("update-quit-and-install");
+            }
+        });
     });
-
-    notification.on('click', createWindow);
-
-    notification.show();
 });
 
 autoUpdater.on('update-downloaded', () => {
-    let notification = new Notification({
-        icon: path.join(app.getAppPath(), 'assets/img/pack.png'),
-        title: "New Update Installed!",
-        body: "Restart the app or click on this notification to finish the installation."
+    BrowserWindow.getAllWindows().forEach(win => {
+        let text = `La mise à jour est prête à être installée!\nAppuie sur la notification ou redémarre l'application :)`;
+        win.webContents.send('web-logging', text);
+        win.webContents.send('notification', 'success', {
+            text,
+            avatar: path.join(app.getAppPath(), 'assets/img/pack.png'),
+            onClick: function () { 
+                ipcRenderer.invoke("update-quit-and-install");
+            }
+        });
     });
+});
 
-    notification.on('click', () => autoUpdater.quitAndInstall());
-
-    notification.show();
+ipcMain.handle("update-quit-and-install", async ( event ) => {
+    autoUpdater.quitAndInstall()
 });
 
 process.on('uncaughtException', function (error) {
-    console.error(error);
     log.error(error);
-    BrowserWindow.getAllWindows().forEach(win => win.webContents.send('web-logging-error', error.message));
+    BrowserWindow.getAllWindows().forEach(win => {
+        win.webContents.send('web-logging-error', `uncaughtException: ${error.message}\n${error.cause}`);
+        win.webContents.send('notification', 'error', `uncaughtException: ${error.message}`);
+    });
 });

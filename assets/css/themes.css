@@ -4,10 +4,12 @@ html, html[theme="light-1"] {
     --secondary-color: #FDEDD6;
     --tertiary-color: #FBDBAD;
     --quaternary-color: #F5A631;
-  
+
     --enable-color: #17521E;
     --disable-color: #181818;
-  
+
+    --error-color: #7a0d1a; 
+    
     --navbar-primary-color: var(--secondary-color);
     --navbar-secondary-color: var(--quaternary-color);
   
@@ -36,6 +38,8 @@ html[theme="light-2"] {
     --tertiary-color: #FBDBAD;
     --quaternary-color: #F5A631;
 
+    --error-color: #7a0d1a; 
+    
     --enable-color: #17521E;
     --disable-color: #000000;
 
