@@ -1,6 +1,6 @@
 {
   "name": "ksmp-client-updater",
-  "version": "1.1.2-beta",
+  "version": "2.0.0-beta",
   "beta": true,
   "description": "KSMP Client Updater",
   "main": "app.js",
@@ -19,7 +19,8 @@
     "electron-log": "^4.4.8",
     "electron-unhandled": "^4.0.1",
     "electron-updater": "^6.1.1",
-    "fetch": "^1.1.0"
+    "fetch": "^1.1.0",
+    "shell": "^0.5.1"
   },
   "build": {
     "appId": "ksmp.client.updater",
@@ -30,7 +31,7 @@
     "publish": [
       {
         "provider": "generic",
-        "url": "http://vps.wolphwood.ovh:8080/ksmp-api/app/version/last"
+        "url": "https://vps.wolphwood.ovh/ksmp-api/v2/app/version/latest"
       }
     ],
     "portable": {

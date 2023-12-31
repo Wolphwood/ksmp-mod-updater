@@ -1,0 +1,8 @@
+<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path class="background" fill="black" d="M16 4.5H9V11.5H16V4.5Z"/>
+    <path class="background" fill="black" d="M24 4.5H17V11.5H24V4.5Z"/>
+    <path class="background" fill="black" d="M7.60078 12L0 5.91938V18.0806L7.60078 12Z"/>
+    <path class="background" fill="black" d="M16 12.5H9V19.5H16V12.5Z"/>
+    <path class="background" fill="black" d="M24 12.5H17V19.5H24V12.5Z"/>
+    <path class="border"     fill="black" fill-rule="evenodd" clip-rule="evenodd" d="M9 4.5H16V11.5H9V4.5ZM11 6.5V9.5H14V6.5H11ZM17 4.5H24V11.5H17V4.5ZM19 6.5V9.5H22V6.5H19ZM0 5.91938L7.60078 12L0 18.0806V5.91938ZM2 10.0806V13.9194L4.39922 12L2 10.0806ZM9 12.5H16V19.5H9V12.5ZM11 14.5V17.5H14V14.5H11ZM17 12.5H24V19.5H17V12.5ZM19 14.5V17.5H22V14.5H19Z"/>
+</svg>

@@ -1,0 +1,65 @@
+/* Default Theme - Light #1 */
+html, html[theme="light-1"] {
+    --primary-color: #113b15;
+    --secondary-color: #FDEDD6;
+    --tertiary-color: #FBDBAD;
+    --quaternary-color: #F5A631;
+
+    --enable-color: #17521E;
+    --disable-color: #181818;
+
+    --error-color: #7a0d1a; 
+    
+    --navbar-primary-color: var(--secondary-color);
+    --navbar-secondary-color: var(--quaternary-color);
+  
+    --text-primary-color: #181818;
+    --text-secondary-color: var(--secondary-color);
+    --text-tertiary-color: var(--quaternary-color);
+    
+    --dropdown-background-color: var(--secondary-color);
+    --dropdown-text-color: var(--text-primary-color);
+    
+    --button-primary-background: var(--enable-color);
+    --button-primary-color: var(--text-secondary-color);
+    
+    --button-secondary: var(--secondary-color);
+    --button-secondary-color: var(--text-secondary-color);
+  
+    --checkbox-primary: var(--secondary-color);
+    --checkbox-enable: var(--enable-color);
+    --checkbox-disable: var(--disable-color);
+  }
+  
+/* Light #2 */
+html[theme="light-2"] {
+    --primary-color: #0C290F;
+    --secondary-color: #FDEDD6;
+    --tertiary-color: #FBDBAD;
+    --quaternary-color: #F5A631;
+
+    --error-color: #7a0d1a; 
+    
+    --enable-color: #17521E;
+    --disable-color: #000000;
+
+    --navbar-primary-color: var(--secondary-color);
+    --navbar-secondary-color: var(--quaternary-color);
+
+    --text-primary-color: #000000;
+    --text-secondary-color: var(--secondary-color);
+    --text-tertiary-color: var(--quaternary-color);
+
+    --dropdown-background-color: var(--secondary-color);
+    --dropdown-text-color: var(--text-primary-color);
+
+    --button-primary-background: var(--enable-color);
+    --button-primary-color: var(--text-secondary-color);
+
+    --button-secondary: var(--secondary-color);
+    --button-secondary-color: var(--text-secondary-color);
+
+    --checkbox-primary: var(--secondary-color);
+    --checkbox-enable: var(--enable-color);
+    --checkbox-disable: var(--disable-color);
+}

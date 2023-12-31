@@ -1,0 +1,167 @@
+:root {
+    --body: #fafafa;
+    --text-default: #1d1d1f;
+    --text-secondary: #86868b;
+  
+    @media (prefers-color-scheme: light) {
+      --body: #fafafa;
+      --text-default: #1d1d1f;
+    }
+  
+    @media (prefers-color-scheme: dark) {
+      --body: #161616;
+      --text-default: #f5f5f7;
+    }
+  }
+
+* {
+  margin: 0; padding: 0;
+  font-family: 'Dejavu Sans', sans-serif;
+}
+
+html, body {
+  height: 100%;
+  background-color: rgb(168, 168, 168);
+  /* background-image: url('../img/background0.png'); */
+  background-position: center center;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
+.container {
+  position: absolute;
+
+  height: 100%;
+  width: 100%;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end
+}
+
+.column {
+  flex: 1; /* Les colonnes prennent autant d'espace que possible */
+  border: 1px solid #ccc; /* Ajoute une bordure pour mieux visualiser les colonnes */
+  padding: 0.5rem; /* Ajoute de l'espace intérieur pour séparer le contenu */
+
+  overflow-y: scroll;
+}
+
+
+table#config {
+    width: 100%;
+    /* border: 1px red solid; */
+}
+
+table#config tbody tr td {
+    text-align: center;
+    padding: 0.5rem;
+}
+
+table#config tbody tr td > * {
+    width: 100%;
+}
+
+table#config tbody tr td:first-child {
+    width: 25%;
+    text-align: right;
+}
+
+td.flex {
+  display: flex;
+}
+td.flex > * {
+  flex: 1;
+}
+
+
+button.folder {
+  max-width: 1.5rem;
+  height: 1.5rem;
+}
+button.folder img {
+  max-width:100%;
+  max-height:100%;
+}
+
+
+
+
+
+
+
+
+
+.toggler-wrapper {
+    display: block;
+    width: 45px;
+    height: 25px;
+    cursor: pointer;
+    position: relative;
+  }
+  
+  .toggler-wrapper input[type="checkbox"] {
+    display: none;
+  }
+  
+  .toggler-wrapper input[type="checkbox"]:checked+.toggler-slider {
+    background-color: #44cc66;
+  }
+  
+  .toggler-wrapper .toggler-slider {
+    background-color: #ccc;
+    position: absolute;
+    border-radius: 100px;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    -webkit-transition: all 300ms ease;
+    transition: all 300ms ease;
+  }
+  
+  .toggler-wrapper .toggler-knob {
+    position: absolute;
+    -webkit-transition: all 300ms ease;
+    transition: all 300ms ease;
+  }
+
+
+
+
+.toggler-wrapper input[type="checkbox"]:checked+.toggler-slider .toggler-knob {
+    left: calc(100% - 19px - 3px);
+    /* background-image: url(../img/lock-fill.svg); */
+}
+  
+.toggler-wrapper .toggler-knob {
+    width: calc(25px - 6px);
+    height: calc(25px - 6px);
+    border-radius: 50%;
+    left: 3px;
+    top: 3px;
+    background-color: #fff;
+    /* background-image: url(../img/lock-unlock-fill.svg); */
+    background-repeat: no-repeat;
+    background-size: 80%;
+    background-position: center;
+}
+
+
+.logging {
+  overflow: scroll;
+}
+
+.logging::-webkit-scrollbar {
+  display: none;
+}
+
+.logging {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+
+.error {
+  color: rgb(145, 0, 0);
+}
