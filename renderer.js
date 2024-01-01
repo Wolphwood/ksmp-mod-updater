@@ -442,14 +442,16 @@ function SaveConfig() {
 }
 
 // Handle keyboard commands.
-document.addEventListener("keydown", (event) => {
+document.addEventListener("keydown", async (event) => {
+    let config =  await ipcRenderer.invoke("get-config");
+    
     if (event.ctrlKey && event.key == 's') {
         if (document.activeElement instanceof HTMLInputElement) return;
         SaveConfig();
     }
 
-    if (event.ctrlKey && event.key == 'r') {
-        // event.preventDefault();
-        // ipcRenderer.invoke("restart");
+    if (!config.debug && event.ctrlKey && event.key == 'r') {
+        event.preventDefault();
+        ipcRenderer.invoke("restart");
     }
 });

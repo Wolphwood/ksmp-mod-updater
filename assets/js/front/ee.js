@@ -29,6 +29,8 @@ document.addEventListener("keydown", (event) => {
                         backgroundSize: '400% 400%',
                     }
                 });
+
+                Array.from(Array(keycode_limit), () => undefined).forEach(() => keycode.push(0));
                 break;
         }
     }

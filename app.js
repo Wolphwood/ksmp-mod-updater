@@ -41,7 +41,7 @@ const createWindow = () => {
         icon: path.join(app.getAppPath(), 'assets/img/pack.png'),
     });
 
-    mainWindow.loadFile('./new.html');
+    mainWindow.loadFile('./index.html');
 
     Menu.setApplicationMenu(null);
 
@@ -240,6 +240,20 @@ ipcMain.handle("DOMContentLoaded", async ( event ) => {
     SearchUpdate();
     console.log("==========================================");
 
+    if (Math.random() > 0.9) {
+        BrowserWindow.getAllWindows().forEach(win => {
+            win.webContents.send('notification', 'default', {
+                duration: 10_000,
+                text: `Toi je t'aime bien :)`,
+                gravity: 'bottom',
+                offset: {x: 0, y: 0},
+                style: {
+                    background: "linear-gradient(to left, #ffc300, #ffd60a)",
+                },
+            });
+        });
+    }
+
     // let testFilename = path.join(app.getPath("temp"), "test.zip");
     // if (fs.existsSync(testFilename)) fs.unlinkSync(testFilename);
     // downloadFileWithProgress("http://vps.wolphwood.ovh:8080/ksmp-api/ressourcepack/get/normal/2.0", app.getPath("temp"), 'test.zip');
@@ -304,13 +318,7 @@ autoUpdater.on('update-available', () => {
     BrowserWindow.getAllWindows().forEach(win => {
         let text = `Une mise à jour de l'application est disponible`;
         win.webContents.send('web-logging', text);
-        win.webContents.send('notification', 'new-app-update', {
-            text,
-            avatar: path.join(app.getAppPath(), 'assets/img/pack.png'),
-            onClick: function () { 
-                ipcRenderer.invoke("update-quit-and-install");
-            }
-        });
+        win.webContents.send('notification', 'new-app-update', text);
     });
 });
 
@@ -318,13 +326,7 @@ autoUpdater.on('update-downloaded', () => {
     BrowserWindow.getAllWindows().forEach(win => {
         let text = `La mise à jour est prête à être installée!\nAppuie sur la notification ou redémarre l'application :)`;
         win.webContents.send('web-logging', text);
-        win.webContents.send('notification', 'success', {
-            text,
-            avatar: path.join(app.getAppPath(), 'assets/img/pack.png'),
-            onClick: function () { 
-                ipcRenderer.invoke("update-quit-and-install");
-            }
-        });
+        win.webContents.send('notification', 'app-update-success', text);
     });
 });
 

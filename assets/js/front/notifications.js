@@ -5,6 +5,7 @@ let DefaultNotificationSettings = {
     close: true,
     dynamicDuration: false,
     volume: 0.5,
+    stopOnFocus: true,
 }
 
 let Notifications = new Map();
@@ -29,6 +30,22 @@ Notifications.set('new-app-update', {
     style: {
         background: "linear-gradient(to left, #0077b6, #0096c7)",
     },
+    onClick: (toast) => {
+        toast.hideToast();
+    }
+});
+Notifications.set('app-update-success', {
+    duration: 20_000,
+    avatar: "./assets/img/notifications/success.png",
+    sound: "./assets/snd/notifications/success.mp3",
+    text: "La mise à jour est prête à être installée !",
+    style: {
+        background: "linear-gradient(to left, #02c39a, #02c39a)",
+    },
+    onClick: (toast) => {
+        toast.hideToast();
+        ipcRenderer.invoke('update-quit-and-install');
+    }
 });
 Notifications.set('success', {
     avatar: "./assets/img/notifications/success.png",
