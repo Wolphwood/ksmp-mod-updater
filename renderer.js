@@ -159,7 +159,6 @@ window.addEventListener('DOMContentLoaded', async () => {
             let shaderVersions = await ipcRenderer.invoke("api", `/shaderpack/${shader}`);
             
             for (shaderVersion of shaderVersions) {
-                console.log(shaderVersion)
                 let p = document.createElement('p');
                 p.innerText = `[${shader} v${shaderVersion}](${api_url}/shaderpack/${shader}/${shaderVersion})`
                 p.innerHTML = parseMarkdownLink(p);
@@ -168,7 +167,6 @@ window.addEventListener('DOMContentLoaded', async () => {
                 let shaderConfigs = await ipcRenderer.invoke("api", `/config/shaderpack/${shader}/${shaderVersion}`);
                 
                 for (shaderConfig of shaderConfigs) {
-                    console.log(`[${shaderConfig}](${api_url}/config/shaderpack/${shader}/${shaderVersion}/${shaderConfig})`);
                     let p = document.createElement('p');
                     p.innerText = ` → [${shaderConfig}](${api_url}/config/shaderpack/${shader}/${shaderVersion}/${shaderConfig})`;
                     p.innerHTML = parseMarkdownLink(p);
@@ -215,7 +213,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 });
 
 async function CreateModList(modpack) {
-    if (modpack == "null") {
+    if (!modpack || modpack == "null") {
         let modsFragment = document.createDocumentFragment();
 
             let gridContainer = document.createElement('div');

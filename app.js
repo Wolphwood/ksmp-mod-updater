@@ -2,6 +2,7 @@ const { app, BrowserWindow, Tray, Menu, dialog, ipcMain, Notification } = requir
 const path = require('path');
 const fs = require('fs');
 
+
 const { autoUpdater } = require("electron-updater");
 const log = require('electron-log');
 
@@ -9,6 +10,11 @@ module.exports = {
     GetConfigFromApp: () => CONFIG,
     CallAPI,
 };
+
+const isSingleInstance = app.requestSingleInstanceLock();
+if (!isSingleInstance) {
+    return app.quit();
+}
 
 const { WebLog, Wait, downloadFileWithProgress, downloadFile, Toastify } = require('./assets/js/back/functions.js');
 const { LoadConfig, SaveConfig } = require('./assets/js/back/data.js');
@@ -20,40 +26,6 @@ let IntervalSearchUpdate = null;
 
 const createWindow = () => {
     if (mainWindow) return;
-    
-    // if (CONFIG.betaGUI ?? false) {
-    //     mainWindow = new BrowserWindow({
-    //         width: 1920/1.5,
-    //         height: 1080/1.5,
-    //         webPreferences: {
-    //             nodeIntegration: true,
-    //             contextIsolation: false,
-    //             enableRemoteModule: true,
-    //             preload: path.join(__dirname, 'preload.js')
-    //         },
-    //         resizable: false,
-    //         autoHideMenuBar: true,
-    //         icon: path.join(app.getAppPath(), 'assets/img/pack.png'),
-    //     });
-    
-    //     mainWindow.loadFile('./new.html');
-    // } else {
-    //     mainWindow = new BrowserWindow({
-    //         width: 800,
-    //         height: 600,
-    //         webPreferences: {
-    //             nodeIntegration: true,
-    //             contextIsolation: false,
-    //             enableRemoteModule: true,
-    //             preload: path.join(__dirname, 'preload.js')
-    //         },
-    //         resizable: false,
-    //         autoHideMenuBar: true,
-    //         icon: path.join(app.getAppPath(), 'assets/img/pack.png'),
-    //     });
-    
-    //     mainWindow.loadFile('./index.html');
-    // }
 
     mainWindow = new BrowserWindow({
         width: 1920/1.5,
@@ -71,6 +43,8 @@ const createWindow = () => {
 
     mainWindow.loadFile('./new.html');
 
+    Menu.setApplicationMenu(null);
+
     // mainWindow.loadFile('./pages/home.html');
     if (CONFIG.debug) mainWindow.webContents.openDevTools();
 }
@@ -79,7 +53,7 @@ function createTray() {
     const tray = new Tray( path.join(app.getAppPath(), 'assets/img/pack.png') );
     const contextMenu = Menu.buildFromTemplate([
         { label: 'Ouvrir', click: () => createWindow() },
-        { label: 'Chercher une mise à jour', click: () => _search_update(true) },
+        { label: 'Chercher une mise à jour', click: () => `_search_update(true)` },
         { type: 'separator' },
         { label: 'Quitter', click: () => app.quit() }
     ])
@@ -108,7 +82,7 @@ app.whenReady().then(async () => {
 
     if (!CONFIG.startMinimized) createWindow();
 
-    let updateFound = await _search_update();
+    // let updateFound = await _search_update();
     // if (CONFIG.startMinimized && !CONFIG.runBackground) {
     //     await Wait(updateFound ? 5 * 60_000 : 60_000);
     //     app.quit();
@@ -120,7 +94,7 @@ app.whenReady().then(async () => {
     });
     
     if (CONFIG.runBackground) {
-        IntervalSearchUpdate = setInterval(_search_update, 60 * 60 * 1000);
+        // IntervalSearchUpdate = setInterval(_search_update, 60 * 60 * 1000);
     }
 
     setStarupAtLogin(CONFIG.startWithWindows);
@@ -251,102 +225,9 @@ async function CallAPI(request, options) {
 
 
 async function SearchUpdate(inBackground = false) {
-    let mods;
+    let modNeedUpate = await SearchModUpdate();
 
-    let ressourcepack;
-
-    let shaderpack;
-
-    let config;
-
-    return {
-        mods: mods ?? false,
-        ressourcepack: ressourcepack ?? false,
-        others: config ?? false
-    };
-}
-
-async function ApplyUpdate(inBackground = false) {
-    // Mods
-    if (CONFIG.modpack) {
-        let updated = await UpdateMods(inBackground);
-        log.info("Mods successfuly updated :", updated);
-        if (!inBackground) mainWindow.webContents.send('web-logging', ``);
-    }
-
-    // Ressourcepack
-    if (CONFIG.ressourcepack) {
-        let updated = await UpdateRessourcePack(inBackground);
-        log.info("Ressourcepack successfuly updated :", updated);
-        if (!inBackground) mainWindow.webContents.send('web-logging', ``);
-    }
-
-    // Others
-    if (await UpdateOthers(inBackground, true)) {
-        await UpdateOthers(inBackground);
-        if (!inBackground) mainWindow.webContents.send('web-logging', ``);
-    }
-    
-}
-
-async function _search_update(fromTray = false) {
-    let needUpdate = await SearchUpdate(true);
-    let forceUpdate = false;
-
-    BrowserWindow.getAllWindows().forEach(win => {
-        if (needUpdate.mods || forceUpdate) {
-            let text = `Une mise à jour du modpack est disponible!`;
-            
-            win.webContents.send('web-logging', text);
-            win.webContents.send('notification', 'new-update', {
-                text,
-                avatar: path.join(app.getAppPath(), 'assets/img/pack.png'),
-                // onClick: function () { 
-                //     ipcRenderer.invoke("update-quit-and-install");
-                // }
-            });
-        }
-        if (needUpdate.ressourcepack || forceUpdate) {
-            let text = `Une mise à jour du ressourcepack est disponible!`;
-            
-            win.webContents.send('web-logging', text);
-            win.webContents.send('notification', 'new-update', {
-                text,
-                avatar: path.join(app.getAppPath(), 'assets/img/pack.png'),
-                // onClick: function () { 
-                //     ipcRenderer.invoke("update-quit-and-install");
-                // }
-            });
-        }
-        if (needUpdate.others || forceUpdate) {
-            let text = `Une mise à jour de configuration est disponible!`;
-            
-            win.webContents.send('web-logging', text);
-            win.webContents.send('notification', 'new-update', {
-                text,
-                avatar: path.join(app.getAppPath(), 'assets/img/pack.png'),
-                // onClick: function () { 
-                //     ipcRenderer.invoke("update-quit-and-install");
-                // }
-            });
-        }
-
-        if (!Object.keys(needUpdate).some(key => needUpdate[key]) && fromTray) {
-            BrowserWindow.getAllWindows().forEach(win => {
-                let text = `Tout est déjà à jour :)`;
-                win.webContents.send('web-logging', text);
-                win.webContents.send('notification', 'new-update', {
-                    text,
-                    avatar: path.join(app.getAppPath(), 'assets/img/pack.png'),
-                    // onClick: function () { 
-                    //     ipcRenderer.invoke("update-quit-and-install");
-                    // }
-                });
-            });
-        }
-    });
-
-    return needUpdate;
+    return { modNeedUpate, };
 }
 
 ipcMain.handle("DOMContentLoaded", async ( event ) => {
@@ -356,8 +237,7 @@ ipcMain.handle("DOMContentLoaded", async ( event ) => {
 
     console.log("==========================================");
     console.log("SEARCHING AN UPDATE");
-    let modNeedUpate = await SearchModUpdate();
-    if (modNeedUpate) console.log(modNeedUpate, await ApplyModUpdate());
+    SearchUpdate();
     console.log("==========================================");
 
     // let testFilename = path.join(app.getPath("temp"), "test.zip");
@@ -371,21 +251,32 @@ ipcMain.handle("DOMContentLoaded", async ( event ) => {
 });
 
 ipcMain.handle("update", async ( event ) => {
-    mainWindow.webContents.send('web-logging', 'Chekcing for update...\n');
+    mainWindow.webContents.send('web-logging', 'Recherche de mise à jour ...');
     
-    let needUpdate = await SearchUpdate();
+    let result = await SearchUpdate();
     
-    if (needUpdate) {
-        mainWindow.webContents.send('web-logging', '.\nWell, you need an update :)');
-    } else {
-        mainWindow.webContents.send('web-logging', '.\nWell, you don\'t need an update :)');
-    }
+    if (result.modNeedUpate) {
+        await mainWindow.webContents.send('web-logging', `Ta configuration requiert une petite mise à jour !`);
 
-    if (!needUpdate) return;
-    
-    mainWindow.webContents.send('web-logging', '.\n');
-    mainWindow.webContents.send('web-logging', 'Updating your datas...\n');
-    ApplyUpdate();
+        if (result.modNeedUpate) {
+            await mainWindow.webContents.send('web-logging', 'Mise à jour des mods...');
+            let {updated, installed} = await ApplyModUpdate();
+
+            if (updated && installed) {
+                await mainWindow.webContents.send('web-logging', `\n${updated} mod.s mit à jour et ${installed} nouveau.x mod.s installé.s`);
+            }
+            
+            if (!updated && installed) {
+                await mainWindow.webContents.send('web-logging', `\n${installed} nouveau.x mod.s installé.s`);
+            }
+            
+            if (updated && !installed) {
+                await mainWindow.webContents.send('web-logging', `\n${updated} mod.s mit à jour.`);
+            }
+        }
+    } else {
+        mainWindow.webContents.send('web-logging', `Ta configuration est déjà à jour !`);
+    }
 });
 
 ipcMain.handle("select-dir", async ( event ) => {
@@ -402,14 +293,6 @@ ipcMain.handle("wthit", async ( event ) => {
     app.relaunch();
     app.exit();
 });
-
-// ipcMain.handle("toggle-new-gui", async ( event ) => {
-//     CONFIG.betaGUI = !(CONFIG.betaGUI ?? false) ;
-//     await SaveConfig(CONFIG);
-    
-//     app.relaunch();
-//     app.exit();
-// });
 
 ipcMain.handle("restart", async ( event ) => {
     app.relaunch();

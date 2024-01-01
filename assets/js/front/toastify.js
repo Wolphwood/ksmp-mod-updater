@@ -198,7 +198,10 @@
               t.addEventListener(
                 "click",
                 function (t) {
-                  t.stopPropagation(), this.options.onClick();
+                  // MODIFIED PART
+                  t.stopPropagation(), this.options.onClick(this);
+                  
+                  // t.stopPropagation(), this.options.onClick();
                 }.bind(this)
               ),
             "object" == typeof this.options.offset)

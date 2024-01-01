@@ -17,6 +17,10 @@ Notifications.set('new-update', {
     style: {
         background: "linear-gradient(to left, #0077b6, #0096c7)",
     },
+    onClick: (toast) => {
+        toast.hideToast();
+        ipcRenderer.invoke("update");
+    }
 });
 Notifications.set('new-app-update', {
     avatar: "./assets/img/notifications/info.png",

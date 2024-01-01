@@ -14,6 +14,8 @@ const regRemLoader = /[_\-\.\s]+(beta|fabric|forge)*[_\-\.\s]*$/gmi
 async function SearchModUpdate() {
     let config = GetConfigFromApp();
 
+    if (!config.modpack) return false;
+
     let MODS = await CallAPI(`/mods/${config.modpack}`);
     let loader = await CallAPI(`/loader/${config.modpack}`);
 
