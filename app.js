@@ -6,6 +6,14 @@ const fs = require('fs');
 const { autoUpdater } = require("electron-updater");
 const log = require('electron-log');
 
+autoUpdater.logger = log;
+autoUpdater.logger.transports.file.level = "info";
+
+autoUpdater.differentialDownload = false;
+autoUpdater.disableWebInstaller = true;
+autoUpdater.autoDownload = false;
+
+
 module.exports = {
     GetConfigFromApp: () => CONFIG,
     CallAPI,
@@ -22,6 +30,7 @@ const { SearchModUpdate, ApplyModUpdate, SearchRessourcepackUpdate, SearchShader
 
 let mainWindow = null;
 let CONFIG = LoadConfig();
+const API = `${CONFIG?.api?.url ?? 'https://vps.wolphwood.ovh'}/${CONFIG?.api?.home ?? 'ksmp-api'}/v2/`;
 let IntervalSearchUpdate = null;
 
 const createWindow = () => {
@@ -62,11 +71,11 @@ function createTray() {
 }
 
 function setStarupAtLogin(value) {
-    if (process.env.PORTABLE_EXECUTABLE_DIR) return;
-    app.setLoginItemSettings({
-        openAtLogin: value,
-        path: app.getPath('exe'),
-    });
+    // if (process.env.PORTABLE_EXECUTABLE_DIR) return;
+    // app.setLoginItemSettings({
+    //     openAtLogin: value,
+    //     path: app.getPath('exe'),
+    // });
 }
 
 if (process.platform === 'win32') {
@@ -74,9 +83,9 @@ if (process.platform === 'win32') {
 }
 
 app.whenReady().then(async () => {
-    log.info(app.getPath("userData"))
+    log.info(app.getPath("userData"));
 
-    autoUpdater.checkForUpdates();
+    // autoUpdater.checkForUpdates();
 
     createTray();
 
@@ -97,7 +106,7 @@ app.whenReady().then(async () => {
         // IntervalSearchUpdate = setInterval(_search_update, 60 * 60 * 1000);
     }
 
-    setStarupAtLogin(CONFIG.startWithWindows);
+    // setStarupAtLogin(CONFIG.startWithWindows);
 
     app.on('window-all-closed', e => {
         mainWindow = null;
@@ -128,7 +137,7 @@ ipcMain.handle("set-config", ( event, config ) => {
     if (!config) return CONFIG;
     
     CONFIG = config;
-    setStarupAtLogin(config.startWithWindows);
+    // setStarupAtLogin(config.startWithWindows);
     
     return CONFIG;
 });
@@ -141,9 +150,11 @@ ipcMain.handle("api", async ( event, request, options ) => {
     return CallAPI(request, options);
 });
 
+ipcMain.handle("open-dev-tool", async ( event ) => {
+    mainWindow.webContents.openDevTools();
+});
+
 async function CallAPI(request, options) {
-    const API = `${CONFIG?.api?.url ?? 'https://vps.wolphwood.ovh'}/${CONFIG?.api?.home ?? 'ksmp-api'}/v2/`;
-    
     let data = null;
 
     let fetchURL = (API + request).replace(/\/+/gmi, '/');
@@ -239,11 +250,24 @@ ipcMain.handle("DOMContentLoaded", async ( event ) => {
     console.log("SEARCHING AN UPDATE");
     SearchUpdate();
     console.log("==========================================");
+    console.log("differentialDownload", autoUpdater.differentialDownload);
+    console.log("disableWebInstaller", autoUpdater.disableWebInstaller);
+    console.log("autoDownload", autoUpdater.autoDownload);
+    console.log("==========================================");
+    // autoUpdater.disableWebInstaller = true;
+    // autoUpdater.differentialDownload = false;
+    console.log(autoUpdater.setFeedURL(API + `/app/beta/latest`));
+    console.log(autoUpdater.isUpdaterActive());
+    console.log(await autoUpdater.checkForUpdates());
+    // console.log(autoUpdater.UpdateInfo);
+    console.log("==========================================");
 
-    if (Math.random() > 0.9) {
+    
+
+    if (Math.random() > 0.99) {
         BrowserWindow.getAllWindows().forEach(win => {
             win.webContents.send('notification', 'default', {
-                duration: 10_000,
+                duration: 1000,
                 text: `Toi je t'aime bien :)`,
                 gravity: 'bottom',
                 offset: {x: 0, y: 0},
@@ -316,22 +340,53 @@ ipcMain.handle("restart", async ( event ) => {
 
 autoUpdater.on('update-available', () => {
     BrowserWindow.getAllWindows().forEach(win => {
-        let text = `Une mise à jour de l'application est disponible`;
+        let text = `Une mise à jour de l'application est disponible\n`;
         win.webContents.send('web-logging', text);
         win.webContents.send('notification', 'new-app-update', text);
     });
 });
 
 autoUpdater.on('update-downloaded', () => {
+    WebLog('edit', UpdateUUIDS.log, `La mise à jour est prête à être installée !`);
+
     BrowserWindow.getAllWindows().forEach(win => {
-        let text = `La mise à jour est prête à être installée!\nAppuie sur la notification ou redémarre l'application :)`;
+        let text = `Appuie sur la notification ou redémarre l'application :)\n`;
         win.webContents.send('web-logging', text);
         win.webContents.send('notification', 'app-update-success', text);
     });
 });
 
+autoUpdater.on('download-progress', (progress) => {
+    log.info(progress);
+    WebLog('progress-bar', { uuid: UpdateUUIDS.bar, value: progress.percent ?? 0 });
+});
+
 ipcMain.handle("update-quit-and-install", async ( event ) => {
     autoUpdater.quitAndInstall()
+});
+
+let UpdateUUIDS = {};
+ipcMain.handle("download-update", async ( event ) => {
+    let log = await WebLog('normal', `Téléchargement de la nouvelle mise à jour...`);
+    let bar = await WebLog('progress-bar');
+
+    UpdateUUIDS = { log, bar };
+
+    try {
+        const downloadResult = await autoUpdater.downloadUpdate();
+        log.info(downloadResult);
+    } catch (error) {
+        let text = `Erreur durant le téléchargement de la mise à jour : ${error.message}\n${error.cause}`;
+        log.error(text, error);
+
+        await WebLog('edit', UpdateUUIDS.log, `Sacrebleu une erreur s'est produite pendant le téléchargement de la mise à jour !`, true);
+        await WebLog('progress-bar', { uuid: uuids.progress, error: true, message: `:(` });
+
+        BrowserWindow.getAllWindows().forEach(win => {
+            win.webContents.send('web-logging-error', text);
+            win.webContents.send('notification', 'error', text);
+        });
+    }
 });
 
 process.on('uncaughtException', function (error) {

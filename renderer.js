@@ -450,8 +450,11 @@ document.addEventListener("keydown", async (event) => {
         SaveConfig();
     }
 
-    if (!config.debug && event.ctrlKey && event.key == 'r') {
-        event.preventDefault();
+    if (event.ctrlKey && event.key.toLowerCase() == 'r') {
         ipcRenderer.invoke("restart");
+    }
+
+    if (config.debug && event.ctrlKey && event.shiftKey && event.key.toLowerCase() == 'i') {
+        ipcRenderer.invoke("open-dev-tool");
     }
 });
