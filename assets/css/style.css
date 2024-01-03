@@ -502,6 +502,8 @@ div.input.button.click .wrapper {
   width: 0%;
   height: .75rem;
 
+  transition: width 500ms ease-out;
+
   border-top-right-radius: 1rem;
   border-bottom-right-radius: 1rem;
 

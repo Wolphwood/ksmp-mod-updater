@@ -43,8 +43,6 @@ document.addEventListener("keydown", (event) => {
         if (JSON.stringify(keycode.slice(5,10)) === JSON.stringify(['c','l','i','p','p','y'])) {
             ShowNotification('success', `Oui.`);
         }
-        
-        
     }
     
     if (event.key?.length > 1) {
@@ -56,4 +54,6 @@ document.addEventListener("keydown", (event) => {
     while (keycode.length > keycode_limit) {
         keycode.shift();
     }
+
+    console.log(JSON.stringify(keycode))
 })
