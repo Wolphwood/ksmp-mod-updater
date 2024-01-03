@@ -74,6 +74,9 @@
               0 === t.duration ? 0 : t.duration || o.defaults.duration),
             (this.options.selector = t.selector || o.defaults.selector),
             (this.options.callback = t.callback || o.defaults.callback),
+            // MODIFIED PART
+            // ADDED PART
+            (this.callbackTriggered = false),
             (this.options.destination =
               t.destination || o.defaults.destination),
             (this.options.newWindow = t.newWindow || o.defaults.newWindow),
@@ -92,6 +95,9 @@
                 ? o.defaults.stopOnFocus
                 : t.stopOnFocus),
             (this.options.onClick = t.onClick || o.defaults.onClick),
+            // MODIFIED PART
+            // ADDED PART
+            (this.onClickTriggered = false),
             (this.options.offset = t.offset || o.defaults.offset),
             (this.options.escapeMarkup =
               void 0 !== t.escapeMarkup
@@ -198,7 +204,12 @@
               t.addEventListener(
                 "click",
                 function (t) {
-                  t.stopPropagation(), this.options.onClick();
+                  // MODIFIED PART
+                  t.stopPropagation();
+                  if (!this.onClickTriggered) this.options.onClick(this);
+                  this.onClickTriggered = true;
+                  
+                  // t.stopPropagation(), this.options.onClick();
                 }.bind(this)
               ),
             "object" == typeof this.options.offset)
@@ -252,7 +263,9 @@
                   this.options.node.parentNode &&
                   this.options.node.parentNode.removeChild(this.options.node),
                   t.parentNode && t.parentNode.removeChild(t),
-                  this.options.callback.call(t),
+                  // MODIFIED PART
+                  // ADDED PART
+                  (!this.callbackTriggered) ? (this.options.callback.call(t), this.callbackTriggered = true) : null
                   o.reposition();
               }.bind(this),
               400

@@ -159,7 +159,6 @@ window.addEventListener('DOMContentLoaded', async () => {
             let shaderVersions = await ipcRenderer.invoke("api", `/shaderpack/${shader}`);
             
             for (shaderVersion of shaderVersions) {
-                console.log(shaderVersion)
                 let p = document.createElement('p');
                 p.innerText = `[${shader} v${shaderVersion}](${api_url}/shaderpack/${shader}/${shaderVersion})`
                 p.innerHTML = parseMarkdownLink(p);
@@ -168,7 +167,6 @@ window.addEventListener('DOMContentLoaded', async () => {
                 let shaderConfigs = await ipcRenderer.invoke("api", `/config/shaderpack/${shader}/${shaderVersion}`);
                 
                 for (shaderConfig of shaderConfigs) {
-                    console.log(`[${shaderConfig}](${api_url}/config/shaderpack/${shader}/${shaderVersion}/${shaderConfig})`);
                     let p = document.createElement('p');
                     p.innerText = ` → [${shaderConfig}](${api_url}/config/shaderpack/${shader}/${shaderVersion}/${shaderConfig})`;
                     p.innerHTML = parseMarkdownLink(p);
@@ -215,7 +213,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 });
 
 async function CreateModList(modpack) {
-    if (modpack == "null") {
+    if (!modpack || modpack == "null") {
         let modsFragment = document.createDocumentFragment();
 
             let gridContainer = document.createElement('div');
@@ -444,14 +442,19 @@ function SaveConfig() {
 }
 
 // Handle keyboard commands.
-document.addEventListener("keydown", (event) => {
+document.addEventListener("keydown", async (event) => {
+    let config =  await ipcRenderer.invoke("get-config");
+    
     if (event.ctrlKey && event.key == 's') {
         if (document.activeElement instanceof HTMLInputElement) return;
         SaveConfig();
     }
 
-    if (event.ctrlKey && event.key == 'r') {
-        // event.preventDefault();
-        // ipcRenderer.invoke("restart");
+    if (event.ctrlKey && event.key.toLowerCase() == 'r') {
+        ipcRenderer.invoke("restart");
+    }
+
+    if (config.debug && event.ctrlKey && event.shiftKey && event.key.toLowerCase() == 'i') {
+        ipcRenderer.invoke("open-dev-tool");
     }
 });

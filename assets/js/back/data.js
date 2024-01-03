@@ -38,6 +38,11 @@ function LoadConfig() {
         console.error(error);
     }
 
+    // temp disable this
+    config.startMinimized = false;
+    config.runBackground = false;
+    config.startWithWindows = false;
+
     return Object.assign(default_config, config);
 }
 
