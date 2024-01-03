@@ -1,0 +1,65 @@
+/* Conway's game of life */
+canvas.game-of-life {
+    position: absolute;
+    top: 0; left: 0;
+    z-index: -1;
+    
+    opacity: 0.1;
+
+    pointer-events: none;
+
+    animation: gol 1s linear;
+    transition: opacity 500ms linear;
+}
+
+canvas.game-of-life.show {
+    z-index: 1;
+    opacity: 1;
+    
+    pointer-events: visible;
+}
+
+div.game-of-life.showup {
+    position: absolute;
+    bottom: 1rem; right: 1rem;
+    z-index: 99;
+
+    width: 2rem;
+    height: 2rem;
+
+    opacity: 0.1;
+
+    animation: gol 1s linear;
+    transition: opacity 500ms linear;
+}
+
+div.game-of-life.showup:hover {
+    opacity: 1;
+}
+
+div.game-of-life.showup img {
+    width: 100%; height: 100%;
+}
+
+@keyframes gol {
+    0% {
+        opacity: 0;
+    }
+}
+
+
+/* NGGYU */
+.toastify.nggyu .toastify-avatar {
+    width: 5rem;
+    height: 5rem;
+}
+
+
+@keyframes nggyu {
+    0% {
+        background-position: 0% center;
+    }
+    100% {
+        background-position: 133% center;
+    }
+}
