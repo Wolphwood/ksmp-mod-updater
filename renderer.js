@@ -438,7 +438,7 @@ document.querySelectorAll('svg[file-to-load]').forEach(async (element) => {
 
 function SaveConfig() {
     ipcRenderer.invoke("save-config");
-    ShowNotification("success", {text: `Configuration sauvegargée`});
+    ipcRenderer.invoke("notification", "success", {text: `Configuration sauvegargée`});
 }
 
 // Handle keyboard commands.

@@ -19,7 +19,7 @@ document.addEventListener("keydown", (event) => {
     if (event.key == 'Enter') {
         if (JSON.stringify(keycode) === JSON.stringify(['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'])) {
             let color = ["#ff0000","#ff8700","#ffd300","#deff0a","#a1ff0a","#0aff99","#0aefff","#147df5","#580aff","#be0aff"];
-            ShowNotification('default', {
+            ipcRenderer.invoke("notification", 'default', {
                 text: "You got rick rolled !",
                 duration: 999999999,
                 avatar: "./assets/img/notifications/never-gonna-give-you-up.gif",
@@ -43,24 +43,24 @@ document.addEventListener("keydown", (event) => {
             }
         } else
         if (JSON.stringify(keycode.slice(5,10)) === JSON.stringify('salut'.split(''))) {
-            ShowNotification('information', `Salut 👋`);
+            ipcRenderer.invoke("notification", 'information', `Salut 👋`);
             keycode.push(...ArrayOfNull(keycode_limit - 'salut'.length));
         } else
         if (JSON.stringify(keycode.slice(6,10)) === JSON.stringify('0000'.split(''))) {
-            ShowNotification('success', `Vault unloked.`);
+            ipcRenderer.invoke("notification", 'success', `Vault unloked.`);
             keycode.push(...ArrayOfNull(keycode_limit - '0000'.length));
         } else
         if (JSON.stringify(keycode) === JSON.stringify('0123456789'.split(''))) {
-            ShowNotification('question', `Tu manque d'imagination à ce point ?`);
+            ipcRenderer.invoke("notification", 'question', `Tu manque d'imagination à ce point ?`);
         } else
         if (JSON.stringify(keycode.slice(4,10)) === JSON.stringify('clippy'.split(''))) {
             if (!clippy) {
-                ShowNotification('success', `Oui ?`);
+                ipcRenderer.invoke("notification", 'success', `Oui ?`);
             
                 clippy = new Clippy();
                 clippy.init();
             } else {
-                ShowNotification('success', `Aurevoir 👋`);
+                ipcRenderer.invoke("notification", 'success', `Aurevoir 👋`);
             
                 clippy.setAnimation('exit');
                 clippy = null;
