@@ -4,8 +4,6 @@ const path = require('path');
 const { app, BrowserWindow, ipcMain } = require('electron');
 const log = require('electron-log');
 
-
-
 function WebLog(logtype = '', ...arguments) {
     if (!['normal','error','warning','edit','progress-bar'].includes(logtype)) return;
 
