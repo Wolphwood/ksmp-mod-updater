@@ -10,6 +10,8 @@ HTMLElement.prototype.removeChilren = function() {
     }
 }
 
+Array.prototype.getRandomElement = function () {return this[Math.floor(Math.random() * this.length)]};
+
 // Animation & Transition Waiter
 const AwaitTransition = (element) => new Promise(rs => element.addEventListener('transitionend', rs, { once: true })); 
 const AwaitAnimation = (element) => new Promise(rs => element.addEventListener('animationend', rs, { once: true })); 

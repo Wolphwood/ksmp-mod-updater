@@ -11,6 +11,14 @@ let DefaultNotificationSettings = {
 let Notifications = new Map();
 Notifications.set('default', DefaultNotificationSettings);
 
+Notifications.set('information', {
+    avatar: "./assets/img/notifications/info.png",
+    sound: "./assets/snd/notifications/info.mp3",
+    text: ":)",
+    style: {
+        background: "linear-gradient(to left, #0077b6, #0096c7)",
+    }
+});
 Notifications.set('new-update', {
     avatar: "./assets/img/notifications/info.png",
     sound: "./assets/snd/notifications/info.mp3",

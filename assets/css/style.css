@@ -611,13 +611,9 @@ div.separator {
 /* #region */
 
 
-
-
 .void {
   height: var(--size, 1rem);
 }
-
-
 
 
 .toastify {
@@ -631,17 +627,10 @@ div.separator {
   padding: 12px 12px;
 }
 
-.toastify.nggyu .toastify-avatar {
-  width: 5rem;
-  height: 5rem;
-}
 
 
-@keyframes nggyu {
-	0% {
-		background-position: 0% center;
-	}
-	100% {
-		background-position: 133% center;
-	}
+
+
+.clippy {
+  cursor: grab;
 }

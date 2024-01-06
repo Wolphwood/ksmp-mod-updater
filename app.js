@@ -337,6 +337,12 @@ ipcMain.handle("restart", async ( event ) => {
     app.exit();
 });
 
+ipcMain.handle("notification", async ( event, id, options ) => {
+    BrowserWindow.getAllWindows().forEach(win => {
+        win.webContents.send('notification', id, options);
+    });
+});
+
 
 autoUpdater.on('update-available', () => {
     BrowserWindow.getAllWindows().forEach(win => {
