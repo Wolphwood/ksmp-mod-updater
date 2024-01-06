@@ -55,12 +55,12 @@ document.addEventListener("keydown", (event) => {
         } else
         if (JSON.stringify(keycode.slice(4,10)) === JSON.stringify('clippy'.split(''))) {
             if (!clippy) {
-                ipcRenderer.invoke("notification", 'success', `Oui ?`);
+                ShowNotification('success', `Oui ?`);
             
                 clippy = new Clippy();
                 clippy.init();
             } else {
-                ipcRenderer.invoke("notification", 'success', `Aurevoir 👋`);
+                ShowNotification('success', `Aurevoir 👋`);
             
                 clippy.setAnimation('exit');
                 clippy = null;
@@ -120,7 +120,7 @@ function Conway() {
     let interval;
 
     function setup_gol() {
-        w = 10;
+        w = 5;
         // Calculate columns and rows
         columns = Math.floor(width / w);
         rows = Math.floor(height / w);
