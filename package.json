@@ -13,7 +13,7 @@
   },
   "devDependencies": {
     "electron": "^26.1.0",
-    "electron-builder": "^24.6.3"
+    "electron-builder": "^24.13.3"
   },
   "dependencies": {
     "electron-log": "^4.4.8",
