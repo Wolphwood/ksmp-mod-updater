@@ -18,7 +18,7 @@
   "dependencies": {
     "electron-log": "^4.4.8",
     "electron-unhandled": "^4.0.1",
-    "electron-updater": "^6.1.1"
+    "electron-updater": "^6.3.0"
   },
   "build": {
     "appId": "ksmp.client.updater",
