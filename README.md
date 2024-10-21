@@ -12,4 +12,4 @@ Avec quelques clics, tu peux mettre à jour ton client et sauvegarder tes param�
 Et oui, après presque 3 ans, le serveur KSMP est définitivement éteint.
 Ce fût une grande et belle aventure, merci à tous.
 
-Ce projet inachevé, mais ne vous en faites pas, il servira un jour ou l'autre :)
+Ce projet reste pour le moment inachevé, mais ne vous en faites pas, il servira un jour ou l'autre :)
